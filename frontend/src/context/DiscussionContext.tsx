@@ -14,6 +14,8 @@ import {
 } from '../types';
 import { useSettings } from './SettingsContext';
 
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/+$/, '');
+
 const INITIAL_AGENTS: Record<AgentId, Agent> = {
   research: {
     id: 'research',
@@ -173,11 +175,19 @@ export const DiscussionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
     const connect = () => {
       if (isCleanedUp) return;
-      const isDev = window.location.port === '5173';
-      const hostName = window.location.hostname === 'localhost' ? '127.0.0.1' : window.location.hostname;
-      const wsHost = isDev ? `${hostName}:8000` : window.location.host;
-      const proto = window.location.protocol === 'https:' ? 'wss' : 'ws';
-      const url = `${proto}://${wsHost}/ws`;
+      let url: string;
+      if (API_BASE_URL) {
+        const backendUrl = new URL(API_BASE_URL);
+        backendUrl.protocol = backendUrl.protocol === 'https:' ? 'wss:' : 'ws:';
+        backendUrl.pathname = '/ws';
+        url = backendUrl.toString();
+      } else {
+        const isDev = window.location.port === '5173';
+        const hostName = window.location.hostname === 'localhost' ? '127.0.0.1' : window.location.hostname;
+        const wsHost = isDev ? `${hostName}:8000` : window.location.host;
+        const proto = window.location.protocol === 'https:' ? 'wss' : 'ws';
+        url = `${proto}://${wsHost}/ws`;
+      }
 
       try {
         ws = new WebSocket(url);
@@ -217,7 +227,7 @@ export const DiscussionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     connect();
 
     // Check status API
-    fetch('/api/status')
+    fetch(`${API_BASE_URL}/api/status`)
       .then((res) => res.json())
       .then((data) => {
         if (data.provider) setProvider(data.provider);
@@ -472,7 +482,7 @@ export const DiscussionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     setEvidence([]);
 
     try {
-      const res = await fetch('/api/start', {
+      const res = await fetch(`${API_BASE_URL}/api/start`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -494,7 +504,7 @@ export const DiscussionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   const stopDiscussion = async () => {
     try {
-      await fetch('/api/stop', { method: 'POST' });
+      await fetch(`${API_BASE_URL}/api/stop`, { method: 'POST' });
     } catch (err) {
       console.warn('Stop discussion error:', err);
     }
