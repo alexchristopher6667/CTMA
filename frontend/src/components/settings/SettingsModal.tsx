@@ -29,12 +29,12 @@ export const SettingsModal: React.FC = () => {
     { id: 'system', label: 'System', icon: <Monitor className="w-4 h-4" /> },
   ];
 
-  const accents: { id: AccentColor; label: string; bg: string; border: string }[] = [
-    { id: 'emerald', label: 'Emerald', bg: 'bg-[#10b981]', border: 'border-emerald-400' },
-    { id: 'cyan', label: 'Cyan', bg: 'bg-[#06b6d4]', border: 'border-cyan-400' },
-    { id: 'violet', label: 'Violet', bg: 'bg-[#8b5cf6]', border: 'border-violet-400' },
-    { id: 'amber', label: 'Amber', bg: 'bg-[#f59e0b]', border: 'border-amber-400' },
-    { id: 'rose', label: 'Rose', bg: 'bg-[#f43f5e]', border: 'border-rose-400' },
+  const accents: { id: AccentColor; label: string; color: string }[] = [
+    { id: 'emerald', label: 'Emerald', color: '#10b981' },
+    { id: 'cyan', label: 'Cyan', color: '#06b6d4' },
+    { id: 'violet', label: 'Violet', color: '#8b5cf6' },
+    { id: 'amber', label: 'Amber', color: '#f59e0b' },
+    { id: 'rose', label: 'Rose', color: '#f43f5e' },
   ];
 
   const fontSizes: { id: FontSize; label: string; desc: string }[] = [
@@ -114,9 +114,10 @@ export const SettingsModal: React.FC = () => {
                 <button
                   key={acc.id}
                   onClick={() => updateSettings({ accentColor: acc.id })}
-                  className={`flex items-center justify-center w-9 h-9 rounded-full ${acc.bg} transition-all relative ${
-                    active ? `ring-2 ring-white ring-offset-2 ring-offset-[#121722] scale-110 shadow-lg` : 'opacity-80 hover:opacity-100'
+                  className={`flex items-center justify-center w-9 h-9 rounded-full transition-all relative ${
+                    active ? 'ring-2 ring-white ring-offset-2 ring-offset-[var(--bg-main)] scale-110 shadow-lg' : 'opacity-80 hover:opacity-100'
                   }`}
+                  style={{ backgroundColor: acc.color }}
                   title={acc.label}
                 >
                   {active && <Check className="w-4 h-4 text-white drop-shadow" />}

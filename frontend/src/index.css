@@ -618,3 +618,15 @@ html[data-accent="rose"] .bg-emerald-500\/20 {
   z-index: 10;
 }
 
+.query-bubble {
+  background: linear-gradient(110deg, rgba(16, 185, 129, 0.15), #1d2738 60%, #1a2231);
+  color: #e2e8f0;
+}
+
+html[data-theme="light"] .query-bubble,
+html.light .query-bubble {
+  background: linear-gradient(110deg, #ecfdf5, #f1f5f9 72%, #ffffff);
+  color: #1e293b;
+  border-color: rgba(16, 185, 129, 0.3);
+}
+

@@ -23,7 +23,7 @@ const TurnBlock: React.FC<{
     <div className="space-y-4">
       {/* User Query Bubble */}
       <div className="flex justify-end w-full animate-fade-in">
-        <div className="max-w-2xl lg:max-w-3xl px-5 py-3.5 rounded-2xl bg-gradient-to-r from-emerald-600/15 via-[#1d2738] to-[#1a2231] border border-emerald-500/30 text-white shadow-sm flex flex-col gap-1.5">
+        <div className="query-bubble max-w-2xl lg:max-w-3xl px-5 py-3.5 rounded-2xl border border-emerald-500/30 shadow-sm flex flex-col gap-1.5">
           <div className="flex items-center justify-between gap-3 text-[11px] text-emerald-400 font-semibold">
             <span>Research Inquiry</span>
             <span className="px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-[10px] uppercase tracking-wider">
@@ -175,7 +175,7 @@ export const ChatThread: React.FC = () => {
             <div className="space-y-4">
               {/* Current user query bubble */}
               <div className="flex justify-end w-full animate-fade-in">
-                <div className="max-w-2xl lg:max-w-3xl px-5 py-3.5 rounded-2xl bg-gradient-to-r from-emerald-600/15 via-[#1d2738] to-[#1a2231] border border-emerald-500/30 text-white shadow-sm flex flex-col gap-1.5">
+                <div className="query-bubble max-w-2xl lg:max-w-3xl px-5 py-3.5 rounded-2xl border border-emerald-500/30 shadow-sm flex flex-col gap-1.5">
                   <div className="flex items-center justify-between gap-3 text-[11px] text-emerald-400 font-semibold">
                     <span>Research Inquiry</span>
                     <span className="px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-[10px] uppercase tracking-wider">

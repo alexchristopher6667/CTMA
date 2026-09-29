@@ -33,7 +33,7 @@ export const AnalyticsDashboard: React.FC = () => {
   );
 
   return (
-    <div className="flex-1 overflow-y-auto px-6 md:px-8 py-8 space-y-8 max-w-6xl mx-auto w-full animate-fade-in">
+    <div className="flex-1 min-w-0 overflow-y-auto px-6 md:px-8 py-8 space-y-8 w-full max-w-none animate-fade-in">
       <div className="flex items-center justify-between border-b border-[#252e3e] pb-5 flex-wrap gap-4">
         <div>
           <h2 className="font-serif text-2xl font-bold text-white tracking-tight">
