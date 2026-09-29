@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Cross-Talking Multi-Agent AI System</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" />
+<link rel="stylesheet" href="/static/katex.min.css" />
+<link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="header-brand">
+        <h1>Cross&#8209;Talking Multi&#8209;Agent&nbsp;AI&nbsp;System</h1>
+        <span id="providerBadge" class="provider-pill">Detecting provider...</span>
+      </div>
+      <div class="team-status">
+        <span id="teamStatusDot" class="status-dot idle"></span>
+        <span id="teamStatusLabel">Team Idle</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="page">
+
+    <!-- Configuration Warning Banner (visible if no API key is set) -->
+    <div id="configWarning" class="config-banner" hidden>
+      <div class="config-banner-icon">⚠️</div>
+      <div class="config-banner-text">
+        <strong>LLM Provider Not Configured:</strong> Neither <code>GROQ_API_KEY</code> nor <code>OPENAI_API_KEY</code> was found.
+        Please set an API key in your environment or Google Colab Secrets to start a live team debate.
+      </div>
+    </div>
+
+    <!-- Task Panel -->
+    <section class="task-panel" id="taskPanel">
+      <label for="taskInput">What technical problem should the team investigate?</label>
+      <textarea id="taskInput" rows="2"
+        placeholder="e.g. What are the key architectural differences and trade-offs between REST, GraphQL, and gRPC?"></textarea>
+
+      <!-- Adaptive Threshold Gating Control -->
+      <div class="threshold-controls">
+        <div class="threshold-header">
+          <div class="threshold-title-row">
+            <span class="threshold-title">Selective Cross-Talk Gating Threshold (&theta;<sub>conf</sub>):</span>
+            <span id="thresholdVal" class="threshold-val">0.75 (75%)</span>
+          </div>
+          <span class="threshold-desc">If agent confidence &ge; &theta; (uncertainty &le; 1 - &theta;), cross-talk is bypassed to eliminate token overhead.</span>
+        </div>
+        <div class="threshold-slider-row">
+          <span class="slider-hint">0.40 (Lean / High Savings)</span>
+          <input type="range" id="confThresholdSlider" min="0.40" max="0.95" step="0.05" value="0.75" />
+          <span class="slider-hint">0.95 (Strict / Deep Debate)</span>
+        </div>
+      </div>
+
+      <div class="task-panel-footer">
+        <span id="taskError" class="task-error" role="alert"></span>
+        <button id="stopBtn" class="btn-secondary" type="button" disabled hidden>Stop Discussion</button>
+        <button id="startBtn" class="btn-primary" type="button">Start Team Discussion</button>
+      </div>
+    </section>
+
+    <!-- Round Tracker -->
+    <section class="round-tracker" id="roundTracker" aria-label="Discussion progress">
+      <div class="round-step" data-round="1">
+        <span class="round-dot"></span>
+        <span class="round-label">1. Investigation</span>
+      </div>
+      <div class="round-connector"></div>
+      <div class="round-step" data-round="2">
+        <span class="round-dot"></span>
+        <span class="round-label">2. Cross&#8209;Talk</span>
+      </div>
+      <div class="round-connector"></div>
+      <div class="round-step" data-round="3">
+        <span class="round-dot"></span>
+        <span class="round-label">3. Refinement</span>
+      </div>
+    </section>
+
+    <!-- Workspace (Agent Cards + Dynamic Connector Lines) -->
+    <section class="workspace" id="workspace">
+      <svg class="link-svg" id="linkSvg" preserveAspectRatio="none"></svg>
+      <div class="travel-dot" id="travelDot" hidden></div>
+
+      <article class="agent-card agent-research" id="card-research" data-agent="research">
+        <div class="agent-card-top">
+          <span class="agent-swatch"></span>
+          <div class="agent-meta">
+            <h2>Research Agent</h2>
+            <p class="agent-role">Evidence &amp; Web Grounding</p>
+          </div>
+          <span class="conf-pill" id="conf-research" hidden></span>
+        </div>
+        <p class="agent-status" data-status="idle">Idle</p>
+        <p class="agent-thought">Waiting for a task&hellip;</p>
+      </article>
+
+      <article class="agent-card agent-analyst" id="card-analyst" data-agent="analyst">
+        <div class="agent-card-top">
+          <span class="agent-swatch"></span>
+          <div class="agent-meta">
+            <h2>Analyst Agent</h2>
+            <p class="agent-role">Trade&#8209;offs &amp; Implications</p>
+          </div>
+          <span class="conf-pill" id="conf-analyst" hidden></span>
+        </div>
+        <p class="agent-status" data-status="idle">Idle</p>
+        <p class="agent-thought">Waiting for a task&hellip;</p>
+      </article>
+
+      <article class="agent-card agent-critic" id="card-critic" data-agent="critic">
+        <div class="agent-card-top">
+          <span class="agent-swatch"></span>
+          <div class="agent-meta">
+            <h2>Critic Agent</h2>
+            <p class="agent-role">Challenge &amp; Scrutiny</p>
+          </div>
+          <span class="conf-pill" id="conf-critic" hidden></span>
+        </div>
+        <p class="agent-status" data-status="idle">Idle</p>
+        <p class="agent-thought">Waiting for a task&hellip;</p>
+      </article>
+    </section>
+
+    <!-- Communication Overhead & Efficiency Dashboard -->
+    <section class="overhead-panel" id="overheadPanel">
+      <div class="overhead-header">
+        <div class="overhead-title">
+          <h3>Communication Overhead &amp; Token Efficiency</h3>
+          <span class="overhead-badge" id="overheadBadge">Adaptive Gating Ready</span>
+        </div>
+        <span class="overhead-sub">Empirical metric tracking tokens &amp; synchronization chatter saved</span>
+      </div>
+      <div class="overhead-stats-grid">
+        <div class="stat-card">
+          <span class="stat-label">Communication Overhead Reduced</span>
+          <span class="stat-value" id="overheadReductionVal">0%</span>
+          <span class="stat-sub">unnecessary chatter avoided</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Consultations Gated</span>
+          <span class="stat-value" id="overheadMessagesVal">0 sent / 0 avoided</span>
+          <span class="stat-sub">filtered via confidence threshold</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Estimated Tokens Saved</span>
+          <span class="stat-value highlight" id="overheadTokensVal">0 tokens</span>
+          <span class="stat-sub">from bypassed round-trips</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Uncertainty Cutoff (&theta;<sub>uncert</sub>)</span>
+          <span class="stat-value" id="uncertThresholdVal">0.25 (25%)</span>
+          <span class="stat-sub">trigger level for peer consultation</span>
+        </div>
+      </div>
+      <div class="decision-feed" id="decisionFeed">
+        <div class="decision-empty" id="decisionEmpty">Live gating decisions (Peer Approach vs. Silent Bypass) will stream here during debate.</div>
+      </div>
+    </section>
+
+    <!-- Grounding & Verified Sources Panel -->
+    <section class="evidence-panel" id="evidencePanel">
+      <div class="evidence-header">
+        <div class="evidence-title">
+          <h3>Grounding &amp; Verified Sources</h3>
+          <span class="evidence-count" id="evidenceCount">0 sources</span>
+        </div>
+        <span class="evidence-hint">Live sources discovered and cited by agents during debate</span>
+      </div>
+      <div class="evidence-grid" id="evidenceGrid">
+        <p class="evidence-empty" id="evidenceEmpty">Real-world citations, academic papers, and evidence tiers will appear here as agents investigate.</p>
+      </div>
+    </section>
+
+    <!-- Live Stream -->
+    <section class="stream-panel">
+      <div class="stream-header">
+        <h3>Live Cross-Talk Stream</h3>
+        <span class="stream-counter" id="streamCounter">0 messages</span>
+      </div>
+      <div class="stream" id="stream">
+        <p class="stream-empty" id="streamEmpty">Messages exchanged between agents will stream here in real time.</p>
+      </div>
+    </section>
+
+    <!-- Collective Reasoning (Final Synthesis) -->
+    <section class="collective-panel" id="collectivePanel" hidden>
+      <div class="collective-header">
+        <h3>Collective Reasoning &amp; Synthesis</h3>
+        <button id="copySynthesisBtn" class="btn-copy" type="button" title="Copy to clipboard">
+          <span id="copyIcon">📋</span> Copy Answer
+        </button>
+      </div>
+      <div id="collectiveText" class="collective-body"></div>
+    </section>
+
+  </main>
+
+  <script src="/static/marked.min.js"></script>
+  <script src="/static/katex.min.js"></script>
+  <script src="/static/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,620 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root,
+  html[data-theme="dark"],
+  html.dark {
+    color-scheme: dark;
+    --bg-main: #0b0f17;
+    --bg-sidebar: #101520;
+    --bg-card: #121722;
+    --bg-card-sub: #171d2b;
+    --bg-card-hover: #1c2333;
+    --border-color: #242e40;
+    --border-focus: #374762;
+    --text-bright: #ffffff;
+    --text-main: #e2e8f0;
+    --text-muted: #848fa5;
+    --text-muted-2: #525d73;
+    --scroll-track: #0e121a;
+    --scroll-thumb: rgba(255, 255, 255, 0.2);
+    font-size: 15px;
+  }
+
+  html[data-theme="light"],
+  html.light {
+    color-scheme: light;
+    --bg-main: #f8fafc;
+    --bg-sidebar: #ffffff;
+    --bg-card: #ffffff;
+    --bg-card-sub: #f1f5f9;
+    --bg-card-hover: #e2e8f0;
+    --border-color: #e2e8f0;
+    --border-focus: #cbd5e1;
+    --text-bright: #0f172a;
+    --text-main: #1e293b;
+    --text-muted: #64748b;
+    --text-muted-2: #94a3b8;
+    --scroll-track: #f1f5f9;
+    --scroll-thumb: rgba(0, 0, 0, 0.2);
+  }
+
+  /* Font size scale */
+  html[data-font-size="compact"] {
+    font-size: 13.5px;
+  }
+
+  html[data-font-size="normal"] {
+    font-size: 15px;
+  }
+
+  html[data-font-size="large"] {
+    font-size: 16.5px;
+  }
+
+  /* Global Scrollbars */
+  * {
+    box-sizing: border-box;
+    scrollbar-width: thin;
+    scrollbar-color: var(--scroll-thumb) var(--scroll-track);
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--scroll-track);
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--scroll-thumb);
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(120, 120, 120, 0.4);
+  }
+
+  body {
+    background-color: var(--bg-main);
+    color: var(--text-main);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+}
+
+/* ==========================================================================
+   NUCLEAR Light Mode — covers every hardcoded dark hex used in the app
+   ========================================================================== */
+
+/* ── Base surfaces ── */
+html.light body,
+html[data-theme="light"] body {
+  background-color: var(--bg-main) !important;
+  color: var(--text-main) !important;
+}
+
+html.light aside,
+html[data-theme="light"] aside {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+
+html.light header,
+html[data-theme="light"] header {
+  background-color: rgba(255, 255, 255, 0.97) !important;
+  border-color: #e2e8f0 !important;
+}
+
+/* ── ALL dark hardcoded backgrounds → white/light surfaces ── */
+html[data-theme="light"] [class*="bg-[#0"],
+html[data-theme="light"] [class*="bg-[#1"],
+html.light [class*="bg-[#0"],
+html.light [class*="bg-[#1"] {
+  background-color: #ffffff !important;
+}
+
+/* Darker sub-card shades → light gray */
+html[data-theme="light"] .bg-\[\#141b27\],
+html[data-theme="light"] .bg-\[\#141b27\]\/90,
+html[data-theme="light"] .bg-\[\#151b27\],
+html[data-theme="light"] .bg-\[\#192130\],
+html[data-theme="light"] .bg-\[\#1a2231\],
+html[data-theme="light"] .bg-\[\#1a2333\],
+html[data-theme="light"] .bg-\[\#1c2434\],
+html[data-theme="light"] .bg-\[\#161c28\],
+html[data-theme="light"] .bg-\[\#161e2b\],
+html[data-theme="light"] .bg-\[\#18202d\],
+html[data-theme="light"] .bg-\[\#171f2d\],
+html[data-theme="light"] .bg-\[\#1a202e\],
+html[data-theme="light"] .bg-\[\#1c222e\],
+html[data-theme="light"] .bg-\[\#1d2738\],
+html[data-theme="light"] .bg-\[\#182133\],
+html[data-theme="light"] .bg-\[\#1a2236\],
+html[data-theme="light"] .bg-\[\#202b3d\],
+html.light .bg-\[\#141b27\],
+html.light .bg-\[\#151b27\],
+html.light .bg-\[\#192130\],
+html.light .bg-\[\#1a2231\],
+html.light .bg-\[\#1a2333\],
+html.light .bg-\[\#1c2434\],
+html.light .bg-\[\#161c28\],
+html.light .bg-\[\#161e2b\],
+html.light .bg-\[\#18202d\],
+html.light .bg-\[\#171f2d\],
+html.light .bg-\[\#1a202e\],
+html.light .bg-\[\#1c222e\] {
+  background-color: #f1f5f9 !important;
+}
+
+/* bg-black/40, bg-black/30 etc. → white panel */
+html[data-theme="light"] [class*="bg-black\/"],
+html.light [class*="bg-black\/"] {
+  background-color: #f8fafc !important;
+}
+
+/* from-[#...]/via-[#...]/to-[#...] gradient classes → light */
+html[data-theme="light"] [class*="from-\[#"],
+html[data-theme="light"] [class*="via-\[#"],
+html[data-theme="light"] [class*="to-\[#"],
+html.light [class*="from-\[#"],
+html.light [class*="via-\[#"],
+html.light [class*="to-\[#"] {
+  --tw-gradient-from: #f1f5f9;
+  --tw-gradient-via: #f8fafc;
+  --tw-gradient-to: #ffffff;
+}
+
+/* ── ALL dark borders → light ── */
+html[data-theme="light"] [class*="border-\[#"],
+html.light [class*="border-\[#"] {
+  border-color: #e2e8f0 !important;
+}
+
+/* Divide lines */
+html[data-theme="light"] [class*="divide-\[#"],
+html.light [class*="divide-\[#"] {
+  --tw-divide-opacity: 1;
+  border-color: #e2e8f0 !important;
+}
+
+/* ── Text colors ── */
+html[data-theme="light"] .text-white,
+html[data-theme="light"] .text-\[\#e5e9f2\],
+html[data-theme="light"] .text-\[\#f0f6fc\],
+html[data-theme="light"] .text-\[\#c0cad8\],
+html[data-theme="light"] .text-\[\#c9d1d9\],
+html.light .text-white,
+html.light .text-\[\#e5e9f2\],
+html.light .text-\[\#f0f6fc\],
+html.light .text-\[\#c0cad8\],
+html.light .text-\[\#c9d1d9\] {
+  color: #0f172a !important;
+}
+
+html[data-theme="light"] .text-muted,
+html[data-theme="light"] .text-\[\#848fa5\],
+html.light .text-muted,
+html.light .text-\[\#848fa5\] {
+  color: #64748b !important;
+}
+
+html[data-theme="light"] .text-muted-2,
+html[data-theme="light"] .text-\[\#556075\],
+html[data-theme="light"] .text-\[\#525d73\],
+html.light .text-muted-2,
+html.light .text-\[\#556075\] {
+  color: #94a3b8 !important;
+}
+
+/* ── Headings ── */
+html[data-theme="light"] h1,
+html[data-theme="light"] h2,
+html[data-theme="light"] h3,
+html[data-theme="light"] h4,
+html.light h1,
+html.light h2,
+html.light h3,
+html.light h4 {
+  color: #0f172a !important;
+}
+
+/* ── Agent card thought-stream text (italic dark) ── */
+html[data-theme="light"] p,
+html.light p {
+  color: #334155;
+}
+
+/* ── Textarea / input ── */
+html[data-theme="light"] textarea,
+html[data-theme="light"] input[type="text"],
+html.light textarea,
+html.light input[type="text"] {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #e2e8f0 !important;
+}
+
+/* ── Sidebar session active highlight ── */
+html[data-theme="light"] .border-l-2.border-emerald-400,
+html.light .border-l-2.border-emerald-400 {
+  background-color: #ecfdf5 !important;
+  color: #065f46 !important;
+}
+
+/* ── Synthesis table ── */
+html[data-theme="light"] .table-wrap,
+html.light .table-wrap {
+  background: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+}
+
+html[data-theme="light"] .synthesis-content thead,
+html.light .synthesis-content thead {
+  background: #f1f5f9 !important;
+}
+
+html[data-theme="light"] .synthesis-content th,
+html.light .synthesis-content th {
+  color: #0f172a !important;
+  border-bottom: 2px solid #e2e8f0 !important;
+}
+
+html[data-theme="light"] .synthesis-content td,
+html.light .synthesis-content td {
+  color: #334155 !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+}
+
+/* ── Math blocks ── */
+html[data-theme="light"] .math-block,
+html.light .math-block {
+  background: #f8fafc !important;
+  border: 1px solid #e2e8f0 !important;
+  border-left: 3px solid #10b981 !important;
+  color: #0f172a !important;
+}
+
+/* ── SVG lines in agent workspace don't need overrides (they use gradient colors) ── */
+
+/* ── Backdrop blur panels (agent gating hub) ── */
+html[data-theme="light"] .backdrop-blur-md,
+html.light .backdrop-blur-md {
+  background-color: rgba(255, 255, 255, 0.92) !important;
+}
+
+/* ── Shadow-glass utility in light mode ── */
+html[data-theme="light"] .shadow-glass,
+html.light .shadow-glass {
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.06) !important;
+}
+
+/* ── Scrollbar in light mode ── */
+html[data-theme="light"] ::-webkit-scrollbar-track,
+html.light ::-webkit-scrollbar-track {
+  background: #f1f5f9 !important;
+}
+
+html[data-theme="light"] ::-webkit-scrollbar-thumb,
+html.light ::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.18) !important;
+}
+
+
+
+
+
+
+/* ==========================================================================
+   Live Accent Color System
+   ========================================================================== */
+:root,
+html[data-accent="emerald"] {
+  --accent: #10b981;
+  --accent-soft: rgba(16, 185, 129, 0.15);
+  --accent-border: rgba(16, 185, 129, 0.35);
+}
+
+/* Cyan */
+html[data-accent="cyan"] {
+  --accent: #06b6d4;
+  --accent-soft: rgba(6, 182, 212, 0.15);
+  --accent-border: rgba(6, 182, 212, 0.35);
+}
+html[data-accent="cyan"] .text-emerald-400,
+html[data-accent="cyan"] .text-emerald-300 {
+  color: #06b6d4 !important;
+}
+html[data-accent="cyan"] .bg-emerald-500 {
+  background-color: #06b6d4 !important;
+}
+html[data-accent="cyan"] .border-emerald-500,
+html[data-accent="cyan"] .border-emerald-500\/30,
+html[data-accent="cyan"] .border-emerald-500\/40 {
+  border-color: rgba(6, 182, 212, 0.4) !important;
+}
+html[data-accent="cyan"] .bg-emerald-500\/10,
+html[data-accent="cyan"] .bg-emerald-500\/15,
+html[data-accent="cyan"] .bg-emerald-500\/20 {
+  background-color: rgba(6, 182, 212, 0.15) !important;
+}
+
+/* Violet */
+html[data-accent="violet"] {
+  --accent: #8b5cf6;
+  --accent-soft: rgba(139, 92, 246, 0.15);
+  --accent-border: rgba(139, 92, 246, 0.35);
+}
+html[data-accent="violet"] .text-emerald-400,
+html[data-accent="violet"] .text-emerald-300 {
+  color: #8b5cf6 !important;
+}
+html[data-accent="violet"] .bg-emerald-500 {
+  background-color: #8b5cf6 !important;
+}
+html[data-accent="violet"] .border-emerald-500,
+html[data-accent="violet"] .border-emerald-500\/30,
+html[data-accent="violet"] .border-emerald-500\/40 {
+  border-color: rgba(139, 92, 246, 0.4) !important;
+}
+html[data-accent="violet"] .bg-emerald-500\/10,
+html[data-accent="violet"] .bg-emerald-500\/15,
+html[data-accent="violet"] .bg-emerald-500\/20 {
+  background-color: rgba(139, 92, 246, 0.15) !important;
+}
+
+/* Amber */
+html[data-accent="amber"] {
+  --accent: #f59e0b;
+  --accent-soft: rgba(245, 158, 11, 0.15);
+  --accent-border: rgba(245, 158, 11, 0.35);
+}
+html[data-accent="amber"] .text-emerald-400,
+html[data-accent="amber"] .text-emerald-300 {
+  color: #f59e0b !important;
+}
+html[data-accent="amber"] .bg-emerald-500 {
+  background-color: #f59e0b !important;
+}
+html[data-accent="amber"] .border-emerald-500,
+html[data-accent="amber"] .border-emerald-500\/30,
+html[data-accent="amber"] .border-emerald-500\/40 {
+  border-color: rgba(245, 158, 11, 0.4) !important;
+}
+html[data-accent="amber"] .bg-emerald-500\/10,
+html[data-accent="amber"] .bg-emerald-500\/15,
+html[data-accent="amber"] .bg-emerald-500\/20 {
+  background-color: rgba(245, 158, 11, 0.15) !important;
+}
+
+/* Rose */
+html[data-accent="rose"] {
+  --accent: #f43f5e;
+  --accent-soft: rgba(244, 63, 94, 0.15);
+  --accent-border: rgba(244, 63, 94, 0.35);
+}
+html[data-accent="rose"] .text-emerald-400,
+html[data-accent="rose"] .text-emerald-300 {
+  color: #f43f5e !important;
+}
+html[data-accent="rose"] .bg-emerald-500 {
+  background-color: #f43f5e !important;
+}
+html[data-accent="rose"] .border-emerald-500,
+html[data-accent="rose"] .border-emerald-500\/30,
+html[data-accent="rose"] .border-emerald-500\/40 {
+  border-color: rgba(244, 63, 94, 0.4) !important;
+}
+html[data-accent="rose"] .bg-emerald-500\/10,
+html[data-accent="rose"] .bg-emerald-500\/15,
+html[data-accent="rose"] .bg-emerald-500\/20 {
+  background-color: rgba(244, 63, 94, 0.15) !important;
+}
+
+/* ==========================================================================
+   Synthesis Typography Styles (Strict responsive word-breaking)
+   ========================================================================== */
+.synthesis-content {
+  overflow-wrap: break-word;
+  word-break: break-word;
+  max-width: 100%;
+}
+
+.synthesis-content h1,
+.synthesis-content h2,
+.synthesis-content h3,
+.synthesis-content h4 {
+  font-family: 'Fraunces', Georgia, serif;
+  letter-spacing: -0.015em;
+  margin-top: 1.8rem;
+  margin-bottom: 0.8rem;
+  line-height: 1.35;
+}
+
+.synthesis-content h1:first-child,
+.synthesis-content h2:first-child,
+.synthesis-content h3:first-child {
+  margin-top: 0.4rem;
+}
+
+.synthesis-content h1 {
+  font-size: 1.55rem;
+  font-weight: 700;
+  border-bottom: 1px solid rgba(120, 120, 120, 0.15);
+  padding-bottom: 0.5rem;
+}
+
+.synthesis-content h2 {
+  font-size: 1.35rem;
+  font-weight: 700;
+  border-bottom: 1px solid rgba(120, 120, 120, 0.12);
+  padding-bottom: 0.4rem;
+}
+
+.synthesis-content h3 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.synthesis-content h3::before {
+  content: "";
+  display: inline-block;
+  width: 4px;
+  height: 18px;
+  background: var(--accent);
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.synthesis-content p {
+  margin: 0 0 1rem 0;
+  font-size: 0.975rem;
+  line-height: 1.8;
+}
+
+.synthesis-content strong {
+  font-weight: 600;
+}
+
+.synthesis-content ul,
+.synthesis-content ol {
+  margin: 0.8rem 0 1.2rem 1.5rem;
+  padding: 0;
+}
+
+.synthesis-content li {
+  margin-bottom: 0.5rem;
+  line-height: 1.75;
+}
+
+/* Synthesis Tables - Contained horizontally inside wrapper */
+.table-wrap {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin: 1.25rem 0 1.5rem;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(14, 18, 28, 0.85);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+.synthesis-content table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.875rem;
+  min-width: 480px;
+}
+
+.synthesis-content thead {
+  background: linear-gradient(180deg, #1b2436 0%, #151d2d 100%);
+}
+
+.synthesis-content th {
+  color: #f0f6fc;
+  font-weight: 600;
+  font-size: 0.775rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.8rem 1rem;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.12);
+  white-space: nowrap;
+}
+
+.synthesis-content td {
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  color: #c9d1d9;
+  vertical-align: top;
+  line-height: 1.6;
+  word-break: normal;
+  overflow-wrap: break-word;
+}
+
+.synthesis-content tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.synthesis-content tbody tr:hover td {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+/* Mathematical KaTeX Blocks */
+.math-block {
+  margin: 1.2rem 0;
+  padding: 1rem 1.25rem;
+  background: rgba(15, 20, 31, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-left: 3px solid var(--accent);
+  border-radius: 8px;
+  overflow-x: auto;
+  font-size: 1.05rem;
+  color: #f0f6fc;
+  text-align: center;
+}
+
+.math-inline {
+  display: inline-block;
+  padding: 0 0.25rem;
+  color: #5fa8ff;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.95em;
+}
+
+.math-frac {
+  display: inline-flex;
+  flex-direction: column;
+  vertical-align: middle;
+  text-align: center;
+  font-size: 0.85em;
+  padding: 0 0.15rem;
+}
+
+.math-num {
+  border-bottom: 1px solid currentColor;
+  padding-bottom: 1px;
+}
+
+.math-den {
+  padding-top: 1px;
+}
+
+/* ── Chat Stream Bottom Fading Transition ── */
+.chat-scroll-stream {
+  mask-image: linear-gradient(to bottom, black 0%, black calc(100% - 60px), transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, black 0%, black calc(100% - 60px), transparent 100%);
+}
+
+.chat-fade-bottom-overlay {
+  position: absolute;
+  top: -4rem; /* -64px */
+  left: 0;
+  right: 0;
+  height: 4rem; /* 64px */
+  pointer-events: none;
+  background: linear-gradient(to top, #0b0f17 25%, rgba(11, 15, 23, 0.7) 60%, rgba(11, 15, 23, 0) 100%);
+  z-index: 10;
+}
+
+[data-theme='light'] .chat-fade-bottom-overlay,
+.light .chat-fade-bottom-overlay {
+  background: linear-gradient(to top, #f8fafc 25%, rgba(248, 250, 252, 0.7) 60%, rgba(248, 250, 252, 0) 100%) !important;
+}
+
+.chat-input-wrapper {
+  background-color: var(--bg-main);
+  position: relative;
+  z-index: 10;
+}
+
