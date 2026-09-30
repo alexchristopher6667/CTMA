@@ -55,7 +55,7 @@ export const SettingsModal: React.FC = () => {
       <div className="absolute inset-0" onClick={() => setIsSettingsModalOpen(false)} />
 
       {/* Floating Dialog Box */}
-      <div className="relative z-10 w-full max-w-lg rounded-3xl bg-[#121722] border border-[#2a3447] shadow-2xl p-6 space-y-6 text-[#e5e9f2] animate-scale-up max-h-[90vh] overflow-y-auto">
+      <div className="relative z-10 w-full max-w-lg rounded-3xl bg-[#121722] border border-[#2a3447] shadow-2xl p-6 space-y-6 text-[#e5e9f2] animate-scale-up max-h-[90dvh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-[#252f41] pb-4">
           <div className="flex items-center gap-2.5">

@@ -42,7 +42,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, setCollapsed }) => 
 
   return (
     <aside
-      className={`motion-drawer z-30 flex shrink-0 flex-col h-screen transition-all duration-300 border-r border-[#252d3d] bg-[#111622] text-[#e5e9f2] sm:z-20 ${
+      className={`motion-drawer z-30 flex shrink-0 flex-col h-dvh transition-all duration-300 border-r border-[#252d3d] bg-[#111622] text-[#e5e9f2] sm:z-20 ${
         collapsed
           ? 'fixed inset-y-0 left-0 w-72 -translate-x-full sm:relative sm:inset-auto sm:w-20 sm:translate-x-0'
           : 'fixed inset-y-0 left-0 w-72 translate-x-0 shadow-2xl sm:relative sm:inset-auto sm:w-72'
