@@ -5,6 +5,7 @@ import { DeliberationPill } from './DeliberationPill';
 import { ChatMessage } from './ChatMessage';
 import { ChatInput } from './ChatInput';
 import { AgentWorkspace } from '../inspector/AgentWorkspace';
+import { LiveWorkflowTrace } from '../inspector/LiveWorkflowTrace';
 import { ChatTurn } from '../../types';
 
 // Component to render a single completed turn
@@ -76,6 +77,7 @@ export const ChatThread: React.FC = () => {
     newSession,
     sessions,
     currentSessionId,
+    workflowTrace,
   } = useDiscussion();
 
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -83,8 +85,11 @@ export const ChatThread: React.FC = () => {
 
   // Auto-scroll to bottom when turns change or running
   useEffect(() => {
-    if (bottomRef.current) {
-      bottomRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    if (scrollRef.current && (turns.length > 0 || running || collectiveReasoning)) {
+      scrollRef.current.scrollTo({
+        top: scrollRef.current.scrollHeight,
+        behavior: 'smooth',
+      });
     }
   }, [turns, running, collectiveReasoning]);
 
@@ -114,9 +119,9 @@ export const ChatThread: React.FC = () => {
     '⚖ Balanced';
 
   return (
-    <div className="flex flex-col h-[calc(100vh-65px)] overflow-x-hidden w-full">
+    <div className="view-enter flex flex-col flex-1 min-h-0 h-full overflow-x-hidden w-full">
       {/* Scrollable Conversation Stream */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto overflow-x-hidden w-full chat-scroll-stream">
+      <div ref={scrollRef} className="flex-1 overflow-y-auto overflow-x-hidden w-full pt-[72px] chat-scroll-stream">
         <div className="max-w-5xl xl:max-w-6xl 2xl:max-w-7xl mx-auto w-full px-4 md:px-8 pt-8 pb-16 space-y-8 min-w-0">
 
           {/* Welcome / Empty State */}
@@ -127,7 +132,7 @@ export const ChatThread: React.FC = () => {
               </div>
 
               <div className="space-y-2">
-                <h2 className="font-serif text-3xl font-bold tracking-tight">
+                <h2 className="font-serif text-2xl font-bold text-white tracking-tight">
                   What technical problem shall we investigate?
                 </h2>
                 <p className="text-sm text-muted max-w-md mx-auto leading-relaxed">
@@ -136,12 +141,12 @@ export const ChatThread: React.FC = () => {
               </div>
 
               {/* Starter Topic Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5 pt-4 text-left">
+              <div className="stagger-enter grid grid-cols-1 md:grid-cols-3 gap-3.5 pt-4 text-left">
                 {starterTopics.map((topic, idx) => (
                   <button
                     key={idx}
                     onClick={() => startDiscussion(topic.query)}
-                    className="p-4 rounded-2xl bg-[#131926] border border-[#252f43] hover:border-emerald-500/40 hover:bg-[#182133] transition-all flex flex-col justify-between gap-3 text-xs group shadow-sm"
+                    className="motion-lift motion-press p-4 rounded-2xl bg-[#131926] border border-[#252f43] hover:border-emerald-500/40 hover:bg-[#182133] transition-all flex flex-col justify-between gap-3 text-xs group shadow-sm"
                   >
                     <span className="text-[10px] uppercase font-bold text-emerald-400 tracking-wider">
                       {topic.badge}
@@ -189,9 +194,10 @@ export const ChatThread: React.FC = () => {
               {/* Live Deliberation Indicator */}
               {running && <DeliberationPill />}
 
-              {/* Expandable Technical Workspace */}
+              {/* Expandable Technical Workspace & Live Execution Timeline */}
               {isInspectorExpanded && (
-                <div className="w-full animate-slide-up">
+                <div className="w-full space-y-4 animate-slide-up">
+                  {(running || workflowTrace.length > 0) && <LiveWorkflowTrace />}
                   <AgentWorkspace />
                 </div>
               )}

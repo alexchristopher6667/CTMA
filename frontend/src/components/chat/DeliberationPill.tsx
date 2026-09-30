@@ -3,7 +3,7 @@ import { Sparkles, ArrowRight, Eye, ShieldCheck, Search, Scale } from 'lucide-re
 import { useDiscussion } from '../../context/DiscussionContext';
 
 export const DeliberationPill: React.FC = () => {
-  const { currentRound, agents, setIsInspectorExpanded } = useDiscussion();
+  const { currentRound, agents, isInspectorExpanded, setIsInspectorExpanded } = useDiscussion();
 
   const getActiveStep = () => {
     if (currentRound === 1) {
@@ -54,12 +54,16 @@ export const DeliberationPill: React.FC = () => {
 
         {/* Quick expand button */}
         <button
-          onClick={() => setIsInspectorExpanded(true)}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-[#1d2636] text-muted hover:text-white hover:bg-[#253044] border border-[#2e3b50] transition-colors flex-shrink-0"
-          title="Open Technical Agent Inspector"
+          onClick={() => setIsInspectorExpanded(!isInspectorExpanded)}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors flex-shrink-0 ${
+            isInspectorExpanded 
+              ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/40 shadow-glow'
+              : 'bg-[#1d2636] text-muted hover:text-white hover:bg-[#253044] border-[#2e3b50]'
+          }`}
+          title="Toggle Technical Agent Inspector"
         >
-          <Eye className="w-3.5 h-3.5 text-emerald-400" />
-          <span>Inspect</span>
+          <Eye className={`w-3.5 h-3.5 ${isInspectorExpanded ? 'text-emerald-400' : ''}`} />
+          <span>{isInspectorExpanded ? 'Minimize' : 'Inspect'}</span>
         </button>
       </div>
     </div>

@@ -41,7 +41,7 @@ export const ChatInput: React.FC = () => {
   };
 
   return (
-    <div className="w-full max-w-5xl xl:max-w-6xl 2xl:max-w-7xl mx-auto px-4 md:px-8 pb-6 space-y-3">
+    <div className="w-full max-w-5xl xl:max-w-6xl 2xl:max-w-7xl mx-auto px-3 sm:px-4 md:px-8 pb-3 sm:pb-6 space-y-3">
       {/* Suggestions Pills (Only shown when not running and input is empty) */}
       {!running && !prompt && (
         <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs text-muted scrollbar-none">
@@ -55,7 +55,7 @@ export const ChatInput: React.FC = () => {
                 setPrompt(s);
                 if (textareaRef.current) textareaRef.current.focus();
               }}
-              className="px-3 py-1 rounded-full bg-[#151b27] hover:bg-[#1c2436] hover:text-white border border-[#273247] transition-colors truncate max-w-[280px] flex-shrink-0"
+              className="motion-press px-3 py-1 rounded-full bg-[#151b27] hover:bg-[#1c2436] hover:text-white border border-[#273247] transition-colors truncate max-w-[280px] flex-shrink-0"
             >
               {s}
             </button>
@@ -92,7 +92,7 @@ export const ChatInput: React.FC = () => {
             <button
               type="submit"
               disabled={!prompt.trim()}
-              className="flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-black font-bold hover:brightness-110 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-sm"
+              className="motion-press flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-black font-bold hover:brightness-110 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-sm"
               title="Start Team Discussion"
             >
               <Send className="w-4 h-4 ml-0.5" />

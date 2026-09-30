@@ -9,6 +9,8 @@ import {
   Layers,
   ChevronDown,
   ChevronUp,
+  Leaf,
+  Timer,
 } from 'lucide-react';
 import { formatContent } from '../../utils/formatContent';
 import { DiscussionStats, EvidenceItem } from '../../types';
@@ -118,21 +120,56 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
 
           {/* Efficiency & Gating Metrics Bar */}
           {stats && (
-            <div className="flex items-center justify-between p-3 rounded-xl bg-[#171f2c] border border-[#263447] text-xs flex-wrap gap-3">
-              <div className="flex items-center gap-2 text-emerald-400">
-                <TrendingDown className="w-4 h-4" />
-                <span className="font-semibold">{stats.overhead_reduction_pct}% Overhead Reduced</span>
-                <span className="text-muted text-[11px]">({stats.messages_bypassed} unneeded turns avoided)</span>
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center justify-between p-3 rounded-xl bg-[#171f2c] border border-[#263447] text-xs flex-wrap gap-3">
+                <div className="flex items-center gap-2 text-emerald-400">
+                  <TrendingDown className="w-4 h-4" />
+                  <span className="font-semibold">{stats.overhead_reduction_pct}% Overhead Reduced</span>
+                  <span className="text-muted text-[11px]">({stats.messages_bypassed} unneeded turns avoided)</span>
+                </div>
+
+                <div className="flex items-center gap-4 text-muted text-[11px]">
+                  <span>
+                    Tokens Saved: <strong className="text-white font-mono">~{stats.tokens_saved}</strong>
+                  </span>
+                  <span>
+                    Threshold: <strong className="text-white font-mono">{stats.confidence_threshold * 100}%</strong>
+                  </span>
+                </div>
               </div>
 
-              <div className="flex items-center gap-4 text-muted text-[11px]">
-                <span>
-                  Tokens Saved: <strong className="text-white font-mono">~{stats.tokens_saved}</strong>
-                </span>
-                <span>
-                  Threshold: <strong className="text-white font-mono">{stats.confidence_threshold * 100}%</strong>
-                </span>
-              </div>
+              {/* Eco & Energy Telemetry */}
+              {(stats.energy_multi_wh !== undefined || stats.latency_multi_sec !== undefined) && (
+                <div className="flex items-center justify-between p-3 rounded-xl bg-emerald-500/5 border border-emerald-500/20 text-xs flex-wrap gap-3">
+                  <div className="flex items-center gap-4 text-emerald-300">
+                    <div className="flex items-center gap-1.5" title="Total energy consumed (Wh)">
+                      <Leaf className="w-4 h-4" />
+                      <span>
+                        <strong className="text-emerald-400 font-mono">{(stats.energy_multi_wh || 0).toFixed(4)} Wh</strong>
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1.5" title="Carbon footprint (gCO2eq)">
+                      <span>
+                        Carbon: <strong className="font-mono">{(stats.carbon_multi_g || 0).toFixed(4)} gCO2eq</strong>
+                      </span>
+                    </div>
+                    {stats.carbon_saved_g !== undefined && stats.carbon_saved_g > 0 && (
+                      <div className="flex items-center gap-1.5 text-emerald-400/80 text-[11px] border-l border-emerald-500/30 pl-3" title="Carbon avoided due to selective gating">
+                        Avoided: <strong className="font-mono">{stats.carbon_saved_g.toFixed(4)} g</strong>
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-3 text-muted text-[11px]">
+                    <div className="flex items-center gap-1.5" title="Execution latency">
+                      <Timer className="w-3.5 h-3.5" />
+                      <span>
+                        Latency: <strong className="text-white font-mono">{(stats.latency_multi_sec || 0).toFixed(1)}s</strong>
+                        <span className="opacity-70"> (vs {(stats.latency_single_sec || 0).toFixed(1)}s baseline)</span>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

@@ -58,7 +58,7 @@ export const AgentWorkspace: React.FC = () => {
             <Layers className="w-4 h-4" />
           </div>
           <div className="min-w-0">
-            <h2 className="font-serif font-bold text-sm text-white tracking-tight flex items-center gap-2 flex-wrap">
+            <h2 className="font-serif font-bold text-base text-white tracking-tight flex items-center gap-2 flex-wrap">
               Triangular Multi-Agent Deliberation Network
               <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 whitespace-nowrap">
                 Live Topology

@@ -14,6 +14,7 @@ from __future__ import annotations
 import asyncio
 from dataclasses import dataclass, field
 import logging
+import time
 from typing import List, Optional
 
 import config
@@ -45,6 +46,11 @@ class AgentTurnResult:
     evidence: List[dict] = field(default_factory=list)
     citations: List[dict] = field(default_factory=list)
     used_search: bool = False
+    # --- Telemetry fields (added for TASK_BENCHMARK) ---
+    prompt_tokens: int = 0
+    completion_tokens: int = 0
+    duration_sec: float = 0.0
+    searches_count: int = 0
 
 
 # ---------------------------------------------------------------------------
@@ -101,7 +107,9 @@ class GroqProvider(BaseLLMProvider):
         )
         self.model_name = config.GROQ_MODEL
 
-    async def _call_chat(self, system: str, user: str) -> str:
+    async def _call_chat(self, system: str, user: str) -> dict:
+        """Call the Groq Chat Completions API and return a dict with text,
+        token usage, and wall-clock duration."""
         current_system = system
         candidate_models = [self.model_name]
         for fallback in ("qwen/qwen3.8-27b", "openai/gpt-oss-120b", "openai/gpt-oss-20b"):
@@ -112,6 +120,7 @@ class GroqProvider(BaseLLMProvider):
         for model in candidate_models:
             for retry in range(2):
                 try:
+                    t0 = time.perf_counter()
                     response = await self._client.chat.completions.create(
                         model=model,
                         messages=[
@@ -121,13 +130,30 @@ class GroqProvider(BaseLLMProvider):
                         max_tokens=config.MAX_OUTPUT_TOKENS,
                         temperature=config.TEMPERATURE,
                     )
+                    elapsed = time.perf_counter() - t0
+
                     choice = response.choices[0] if response.choices else None
                     text = choice.message.content if choice and choice.message else None
                     if not text:
                         raise LLMRequestError("Groq returned an empty response.")
                     # If fallback worked, remember it
                     self.model_name = model
-                    return text
+
+                    # Extract token usage (fall back to heuristic)
+                    usage = getattr(response, "usage", None)
+                    prompt_tokens = getattr(usage, "prompt_tokens", None) if usage else None
+                    completion_tokens = getattr(usage, "completion_tokens", None) if usage else None
+                    if prompt_tokens is None:
+                        prompt_tokens = (len(system) + len(user)) // 4
+                    if completion_tokens is None:
+                        completion_tokens = len(text) // 4
+
+                    return {
+                        "text": text,
+                        "prompt_tokens": int(prompt_tokens),
+                        "completion_tokens": int(completion_tokens),
+                        "duration_sec": round(elapsed, 6),
+                    }
                 except self._openai_module.BadRequestError as exc:
                     err_str = str(exc)
                     if ("tool" in err_str.lower() or "failed_generation" in err_str.lower()) and retry == 0:
@@ -205,7 +231,8 @@ class GroqProvider(BaseLLMProvider):
             live_search_evidence=live_evidence_text,
         )
 
-        raw_text = await self._call_chat(system, user)
+        result_dict = await self._call_chat(system, user)
+        raw_text = result_dict["text"]
         parsed = parse_agent_json(raw_text)
 
         message = str(parsed.get("message") or "").strip() or "(no content returned)"
@@ -246,6 +273,10 @@ class GroqProvider(BaseLLMProvider):
             evidence=evidence,
             citations=search_citations,
             used_search=bool(search_citations),
+            prompt_tokens=result_dict["prompt_tokens"],
+            completion_tokens=result_dict["completion_tokens"],
+            duration_sec=result_dict["duration_sec"],
+            searches_count=len(search_citations) if search_citations else 0,
         )
 
     async def synthesize_final(
@@ -253,10 +284,13 @@ class GroqProvider(BaseLLMProvider):
         task: str,
         transcript: List[dict],
         evidence_all: List[dict],
-    ) -> str:
+    ) -> dict:
+        """Return a dict with 'text' and telemetry fields."""
         system = build_synthesis_system_prompt()
         user = build_synthesis_user_prompt(task, transcript, evidence_all)
-        return (await self._call_chat(system, user)).strip()
+        result = await self._call_chat(system, user)
+        result["text"] = result["text"].strip()
+        return result
 
 
 # ---------------------------------------------------------------------------
@@ -286,7 +320,8 @@ class OpenAIProvider(BaseLLMProvider):
         self.model_name = config.OPENAI_MODEL
         self._supports_responses_api = True
 
-    async def _call_responses(self, system: str, user: str, use_search: bool):
+    async def _call_responses(self, system: str, user: str, use_search: bool) -> dict:
+        """Call the OpenAI Responses API and return a dict with text, usage, duration."""
         kwargs = {
             "model": self.model_name,
             "input": [
@@ -300,12 +335,34 @@ class OpenAIProvider(BaseLLMProvider):
             kwargs["tools"] = [{"type": config.OPENAI_WEB_SEARCH_TOOL_TYPE}]
             kwargs["tool_choice"] = "required"
 
+        t0 = time.perf_counter()
         resp = await self._client.responses.create(**kwargs)
+        elapsed = time.perf_counter() - t0
+
         text = getattr(resp, "output_text", None)
         citations = web_search.extract_citations(resp) if use_search else []
-        return text, citations
 
-    async def _call_chat(self, system: str, user: str) -> str:
+        # Token usage from Responses API
+        usage = getattr(resp, "usage", None)
+        prompt_tokens = getattr(usage, "input_tokens", None) if usage else None
+        completion_tokens = getattr(usage, "output_tokens", None) if usage else None
+        if prompt_tokens is None:
+            prompt_tokens = (len(system) + len(user)) // 4
+        if completion_tokens is None:
+            completion_tokens = len(text or "") // 4
+
+        return {
+            "text": text,
+            "citations": citations,
+            "prompt_tokens": int(prompt_tokens),
+            "completion_tokens": int(completion_tokens),
+            "duration_sec": round(elapsed, 6),
+        }
+
+    async def _call_chat(self, system: str, user: str) -> dict:
+        """Call the OpenAI Chat Completions API and return a dict with text,
+        token usage, and wall-clock duration."""
+        t0 = time.perf_counter()
         response = await self._client.chat.completions.create(
             model=self.model_name,
             messages=[
@@ -315,8 +372,25 @@ class OpenAIProvider(BaseLLMProvider):
             max_tokens=config.MAX_OUTPUT_TOKENS,
             temperature=config.TEMPERATURE,
         )
+        elapsed = time.perf_counter() - t0
+
         choice = response.choices[0] if response.choices else None
-        return choice.message.content if choice and choice.message else ""
+        text = choice.message.content if choice and choice.message else ""
+
+        usage = getattr(response, "usage", None)
+        prompt_tokens = getattr(usage, "prompt_tokens", None) if usage else None
+        completion_tokens = getattr(usage, "completion_tokens", None) if usage else None
+        if prompt_tokens is None:
+            prompt_tokens = (len(system) + len(user)) // 4
+        if completion_tokens is None:
+            completion_tokens = len(text) // 4
+
+        return {
+            "text": text,
+            "prompt_tokens": int(prompt_tokens),
+            "completion_tokens": int(completion_tokens),
+            "duration_sec": round(elapsed, 6),
+        }
 
     async def generate_agent_turn(
         self,
@@ -334,6 +408,9 @@ class OpenAIProvider(BaseLLMProvider):
 
         text = ""
         citations: List[dict] = []
+        p_tokens = 0
+        c_tokens = 0
+        dur = 0.0
 
         # Attempt Responses API if supported
         if self._supports_responses_api and hasattr(self._client, "responses"):
@@ -346,7 +423,12 @@ class OpenAIProvider(BaseLLMProvider):
                     own_previous_reasoning=own_previous_reasoning,
                     evidence_so_far=evidence_so_far,
                 )
-                text, citations = await self._call_responses(system, user, use_search)
+                resp_dict = await self._call_responses(system, user, use_search)
+                text = resp_dict["text"]
+                citations = resp_dict["citations"]
+                p_tokens = resp_dict["prompt_tokens"]
+                c_tokens = resp_dict["completion_tokens"]
+                dur = resp_dict["duration_sec"]
             except Exception as exc:
                 logger.info(f"Responses API fallback to Chat Completions: {exc}")
                 self._supports_responses_api = False
@@ -367,7 +449,11 @@ class OpenAIProvider(BaseLLMProvider):
                 evidence_so_far=evidence_so_far,
                 live_search_evidence=live_evidence_text,
             )
-            text = await self._call_chat(system, user)
+            chat_dict = await self._call_chat(system, user)
+            text = chat_dict["text"]
+            p_tokens = chat_dict["prompt_tokens"]
+            c_tokens = chat_dict["completion_tokens"]
+            dur = chat_dict["duration_sec"]
 
         parsed = parse_agent_json(text)
         message = str(parsed.get("message") or "").strip() or "(no content returned)"
@@ -394,6 +480,10 @@ class OpenAIProvider(BaseLLMProvider):
             evidence=evidence,
             citations=web_search.dedupe_and_rank(citations),
             used_search=bool(citations),
+            prompt_tokens=p_tokens,
+            completion_tokens=c_tokens,
+            duration_sec=dur,
+            searches_count=len(citations) if citations else 0,
         )
 
     async def synthesize_final(
@@ -401,19 +491,23 @@ class OpenAIProvider(BaseLLMProvider):
         task: str,
         transcript: List[dict],
         evidence_all: List[dict],
-    ) -> str:
+    ) -> dict:
+        """Return a dict with 'text' and telemetry fields."""
         system = build_synthesis_system_prompt()
         user = build_synthesis_user_prompt(task, transcript, evidence_all)
 
         if self._supports_responses_api and hasattr(self._client, "responses"):
             try:
-                text, _ = await self._call_responses(system, user, use_search=False)
-                if text:
-                    return text.strip()
+                resp_dict = await self._call_responses(system, user, use_search=False)
+                if resp_dict.get("text"):
+                    resp_dict["text"] = resp_dict["text"].strip()
+                    return resp_dict
             except Exception:
                 self._supports_responses_api = False
 
-        return (await self._call_chat(system, user)).strip()
+        result = await self._call_chat(system, user)
+        result["text"] = result["text"].strip()
+        return result
 
 
 # ---------------------------------------------------------------------------

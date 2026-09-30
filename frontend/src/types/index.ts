@@ -68,6 +68,42 @@ export interface DiscussionStats {
   messages_bypassed: number;
   overhead_reduction_pct: number;
   tokens_saved: number;
+  // Telemetry (TASK_BENCHMARK) — all default to 0 for backward compat
+  latency_multi_sec?: number;
+  latency_single_sec?: number;
+  latency_delta_pct?: number;
+  energy_multi_wh?: number;
+  energy_single_wh?: number;
+  energy_delta_pct?: number;
+  carbon_multi_g?: number;
+  carbon_single_g?: number;
+  carbon_saved_g?: number;
+  concurrency_time_saved_sec?: number;
+}
+
+// ---------------------------------------------------------------------------
+// Live Workflow Trace
+// ---------------------------------------------------------------------------
+
+export type TraceEventType =
+  | 'start'
+  | 'think'
+  | 'search'
+  | 'decision'
+  | 'message'
+  | 'milestone'
+  | 'finish'
+  | 'error';
+
+export interface TraceEvent {
+  id: string;
+  timestamp: string;
+  type: TraceEventType;
+  agentId?: string;
+  agentName?: string;
+  title: string;
+  detail?: string;
+  meta?: Record<string, any>;
 }
 
 export type AccuracyMode = 'fast' | 'balanced' | 'academic';
@@ -112,3 +148,4 @@ export interface AppSettings {
   preferredProvider: 'groq' | 'openai' | 'auto';
   searchDepth: 'standard' | 'academic';
 }
+

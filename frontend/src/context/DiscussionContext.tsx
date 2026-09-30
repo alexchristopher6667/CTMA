@@ -11,6 +11,7 @@ import {
   DiscussionStats,
   EvidenceItem,
   StreamMessage,
+  TraceEvent,
 } from '../types';
 import { useSettings } from './SettingsContext';
 
@@ -73,6 +74,9 @@ interface DiscussionContextValue {
   error: string | null;
   isBackendConnected: boolean;
 
+  // Workflow trace (live execution timeline)
+  workflowTrace: TraceEvent[];
+
   // Multi-turn turns for current session
   turns: ChatTurn[];
 
@@ -118,6 +122,9 @@ export const DiscussionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [error, setError] = useState<string | null>(null);
   const [isBackendConnected, setIsBackendConnected] = useState<boolean>(false);
 
+  // Live Workflow Trace — chronological event log
+  const [workflowTrace, setWorkflowTrace] = useState<TraceEvent[]>([]);
+
   // Completed turns in current session
   const [turns, setTurns] = useState<ChatTurn[]>([]);
 
@@ -131,6 +138,26 @@ export const DiscussionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     return [];
   });
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
+
+  // Helper to push a trace event
+  const pushTrace = (evt: Omit<TraceEvent, 'id' | 'timestamp'>) => {
+    const traceEvt: TraceEvent = {
+      ...evt,
+      id: `trace-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+      timestamp: new Date().toLocaleTimeString(),
+    };
+    setWorkflowTrace((prev) => [...prev, traceEvt]);
+  };
+
+  // Agent name lookup
+  const agentName = (id: string): string => {
+    const names: Record<string, string> = {
+      research: 'Dr. Elena Chen',
+      analyst: 'Marcus Vance',
+      critic: 'Dr. Sarah Lin',
+    };
+    return names[id] || id;
+  };
 
   // Refs for live snapshot capture (used in async recordTurn)
   const accuracyModeRef = useRef(accuracyMode);
@@ -256,6 +283,7 @@ export const DiscussionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         setEvidence([]);
         setStreamMessages([]);
         setDecisions([]);
+        setWorkflowTrace([]);
         if (evt.provider) setProvider(evt.provider);
         if (evt.model) setModel(evt.model);
         setAgents((prev) => ({
@@ -263,10 +291,28 @@ export const DiscussionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
           analyst: { ...prev.analyst, status: 'idle', current_reasoning: 'Waiting for evidence...', confidence: null },
           critic: { ...prev.critic, status: 'idle', current_reasoning: 'Waiting to review assertions...', confidence: null },
         }));
+        pushTrace({
+          type: 'start',
+          title: 'Discussion Started',
+          detail: `Provider: ${evt.provider || 'auto'} · Model: ${evt.model || 'unknown'} · Mode: ${evt.mode || 'balanced'}`,
+          meta: { provider: evt.provider, model: evt.model, mode: evt.mode },
+        });
         break;
 
       case 'round_started':
         setCurrentRound(evt.round);
+        pushTrace({
+          type: 'milestone',
+          title: `Round ${evt.round}: ${evt.label || 'In Progress'}`,
+          detail: evt.label,
+        });
+        break;
+
+      case 'round_finished':
+        pushTrace({
+          type: 'milestone',
+          title: `Round ${evt.round} Complete`,
+        });
         break;
 
       case 'agent_status':
@@ -278,6 +324,24 @@ export const DiscussionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
               status: evt.status,
             },
           }));
+          // Trace thinking/reading status transitions
+          if (evt.status === 'thinking') {
+            pushTrace({
+              type: 'think',
+              agentId: evt.agent,
+              agentName: agentName(evt.agent),
+              title: `${agentName(evt.agent)} is analyzing the prompt...`,
+              detail: 'Reasoning and formulating response',
+            });
+          } else if (evt.status === 'reading') {
+            pushTrace({
+              type: 'think',
+              agentId: evt.agent,
+              agentName: agentName(evt.agent),
+              title: `${agentName(evt.agent)} is reading peer findings...`,
+              detail: evt.from ? `Reading message from ${agentName(evt.from)}` : 'Processing incoming data',
+            });
+          }
         }
         break;
 
@@ -293,6 +357,14 @@ export const DiscussionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
               uncertainty: typeof evt.confidence === 'number' ? roundNumber(1 - evt.confidence, 2) : prev[evt.agent as AgentId].uncertainty,
             },
           }));
+          pushTrace({
+            type: 'milestone',
+            agentId: evt.agent,
+            agentName: agentName(evt.agent),
+            title: `${agentName(evt.agent)} completed Round ${evt.round}`,
+            detail: typeof evt.confidence === 'number' ? `Confidence: ${Math.round(evt.confidence * 100)}%` : undefined,
+            meta: { confidence: evt.confidence, round: evt.round },
+          });
         }
         break;
 
@@ -316,6 +388,17 @@ export const DiscussionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             const newItems = evt.evidence.filter((e: EvidenceItem) => !e.source_url || !existingUrls.has(e.source_url));
             return [...prev, ...newItems];
           });
+          // Trace each evidence item
+          for (const item of evt.evidence) {
+            pushTrace({
+              type: 'search',
+              agentId: evt.agent,
+              agentName: agentName(evt.agent || 'research'),
+              title: item.source_title || item.claim || 'Evidence discovered',
+              detail: item.claim ? `"${(item.claim as string).slice(0, 120)}${(item.claim as string).length > 120 ? '...' : ''}"` : undefined,
+              meta: { url: item.source_url, source_type: item.source_type, confidence: item.confidence },
+            });
+          }
         }
         break;
 
@@ -357,6 +440,21 @@ export const DiscussionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             timestamp: new Date().toLocaleTimeString(),
           },
         ]);
+        pushTrace({
+          type: 'decision',
+          agentId: evt.sender_id,
+          agentName: evt.sender_name,
+          title: evt.decision === 'bypass'
+            ? `${evt.sender_name} bypassed ${evt.receiver_name}`
+            : `${evt.sender_name} approached ${evt.receiver_name}`,
+          detail: evt.reason,
+          meta: {
+            decision: evt.decision,
+            d_score: evt.d_score,
+            confidence: evt.confidence,
+            threshold: evt.threshold,
+          },
+        });
 
         if (typeof evt.sent_count === 'number' && typeof evt.bypassed_count === 'number') {
           const total = Math.max(1, evt.sent_count + evt.bypassed_count);
@@ -376,6 +474,12 @@ export const DiscussionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         if (evt.stats) {
           setStats(evt.stats);
         }
+        pushTrace({
+          type: 'finish',
+          title: 'Discussion Complete — Synthesis Ready',
+          detail: evt.stats ? `Energy: ${(evt.stats.energy_multi_wh ?? 0).toFixed(4)} Wh · Carbon: ${(evt.stats.carbon_multi_g ?? 0).toFixed(4)} gCO2eq` : undefined,
+          meta: evt.stats,
+        });
         setAgents((prev) => {
           const updated = { ...prev };
           Object.keys(updated).forEach((id) => {
@@ -402,11 +506,21 @@ export const DiscussionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       case 'discussion_error':
         setRunning(false);
         setError(evt.message || 'Discussion encountered an error.');
+        pushTrace({
+          type: 'error',
+          title: 'Error',
+          detail: evt.message || 'Discussion encountered an error.',
+        });
         break;
 
       case 'discussion_cancelled':
         setRunning(false);
         setError('Discussion was cancelled.');
+        pushTrace({
+          type: 'error',
+          title: 'Discussion Cancelled',
+          detail: 'The discussion was cancelled by the user.',
+        });
         break;
     }
   };
@@ -480,6 +594,7 @@ export const DiscussionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     setDecisions([]);
     setStreamMessages([]);
     setEvidence([]);
+    setWorkflowTrace([]);
 
     try {
       const res = await fetch(`${API_BASE_URL}/api/start`, {
@@ -524,6 +639,7 @@ export const DiscussionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     setEvidence([]);
     setStreamMessages([]);
     setDecisions([]);
+    setWorkflowTrace([]);
     setAgents(INITIAL_AGENTS);
   };
 
@@ -571,6 +687,8 @@ export const DiscussionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         collectiveReasoning,
         error,
         isBackendConnected,
+
+        workflowTrace,
 
         turns,
 

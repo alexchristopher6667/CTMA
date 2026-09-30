@@ -134,6 +134,40 @@ class Evidence(BaseModel):
         )
 
 
+class DiscussionStats(BaseModel):
+    """Telemetry snapshot broadcast inside the ``discussion_finished`` payload.
+
+    Every field defaults to 0 / ``None`` so sessions loaded from localStorage
+    that pre-date this schema never crash the frontend.
+    """
+
+    # --- existing counters (unchanged) ---
+    confidence_threshold: float = 0.75
+    uncertainty_threshold: float = 0.25
+    messages_sent: int = 0
+    messages_bypassed: int = 0
+    overhead_reduction_pct: int = 0
+    tokens_saved: int = 0
+
+    # --- latency ---
+    latency_multi_sec: float = 0.0
+    latency_single_sec: float = 0.0
+    latency_delta_pct: float = 0.0
+
+    # --- energy ---
+    energy_multi_wh: float = 0.0
+    energy_single_wh: float = 0.0
+    energy_delta_pct: float = 0.0
+
+    # --- carbon ---
+    carbon_multi_g: float = 0.0
+    carbon_single_g: float = 0.0
+    carbon_saved_g: float = 0.0
+
+    # --- concurrency ---
+    concurrency_time_saved_sec: float = 0.0
+
+
 class StartDiscussionRequest(BaseModel):
     task: str
     confidence_threshold: float = 0.75

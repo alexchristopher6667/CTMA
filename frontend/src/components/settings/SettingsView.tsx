@@ -25,7 +25,7 @@ export const SettingsView: React.FC = () => {
   };
 
   return (
-    <div className="flex-1 overflow-y-auto px-8 py-8 space-y-8 max-w-4xl mx-auto w-full animate-fade-in">
+    <div className="view-enter flex-1 overflow-y-auto px-8 pt-[104px] pb-8 space-y-8 max-w-4xl mx-auto w-full">
       {/* Settings Header */}
       <div className="flex items-center justify-between border-b border-[#252e3e] pb-5 flex-wrap gap-4">
         <div>
@@ -143,7 +143,7 @@ export const SettingsView: React.FC = () => {
                 onChange={(e) => updateSettings({ defaultThreshold: parseFloat(e.target.value) })}
                 className="w-full accent-emerald-500 h-2 bg-[#1b2333] rounded-lg cursor-pointer"
               />
-              <div className="flex justify-between text-[11px] text-muted-2 mt-1">
+              <div className="flex flex-wrap justify-between gap-x-3 gap-y-1 text-[11px] text-muted-2 mt-1">
                 <span>0.40 (Aggressive Silencing / High Token Savings)</span>
                 <span>0.75 (Balanced)</span>
                 <span>0.95 (High Scrutiny)</span>
@@ -153,10 +153,10 @@ export const SettingsView: React.FC = () => {
             {/* Formula Preview Box */}
             <div className="p-3.5 rounded-xl bg-[#0f141f] border border-[#232d3e] text-xs space-y-1">
               <span className="text-[10px] uppercase font-bold text-sky-400 tracking-wider">Mathematical Condition:</span>
-              <p className="font-mono text-[#c9d3e0] text-[11px]">
+              <p className="font-mono text-[#c9d3e0] text-[11px] break-words">
                 If C<sub>i</sub> ≥ {settings.defaultThreshold.toFixed(2)} → Peer consultation is bypassed (0 tokens consumed)
               </p>
-              <p className="font-mono text-[#c9d3e0] text-[11px]">
+              <p className="font-mono text-[#c9d3e0] text-[11px] break-words">
                 If U<sub>i</sub> = (1 - C<sub>i</sub>) &gt; {(1 - settings.defaultThreshold).toFixed(2)} → Approach Verifier (Critic)
               </p>
             </div>

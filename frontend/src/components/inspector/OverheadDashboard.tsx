@@ -1,5 +1,5 @@
 import React from 'react';
-import { ShieldCheck, TrendingDown, ArrowRight, Zap, CheckCircle2 } from 'lucide-react';
+import { ShieldCheck, TrendingDown, ArrowRight, Zap, CheckCircle2, Leaf } from 'lucide-react';
 import { useDiscussion } from '../../context/DiscussionContext';
 
 export const OverheadDashboard: React.FC = () => {
@@ -20,8 +20,8 @@ export const OverheadDashboard: React.FC = () => {
         </span>
       </div>
 
-      {/* 4 Stat Cards Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      {/* 6 Stat Cards Grid */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
         <div className="p-3 rounded-xl bg-[#171f2d] border border-[#273549] flex flex-col justify-between">
           <span className="text-[10px] font-bold uppercase text-muted tracking-wider">Overhead Reduced</span>
           <span className="font-serif text-xl font-bold text-emerald-400 mt-1">
@@ -52,6 +52,28 @@ export const OverheadDashboard: React.FC = () => {
             {stats.uncertainty_threshold} ({Math.round(stats.uncertainty_threshold * 100)}%)
           </span>
           <span className="text-[10px] text-muted-2 mt-0.5">trigger level for peer inquiry</span>
+        </div>
+
+        <div className="p-3 rounded-xl bg-[#171f2d] border border-[#273549] flex flex-col justify-between">
+          <div className="flex items-center justify-between text-muted text-[10px] font-bold uppercase tracking-wider">
+            <span>Energy Saved</span>
+            <Zap className="w-3.5 h-3.5 text-emerald-400" />
+          </div>
+          <span className="font-serif text-lg font-bold text-emerald-400 font-mono mt-1">
+            {stats.energy_single_wh && stats.energy_multi_wh ? Math.max(0, stats.energy_single_wh - stats.energy_multi_wh).toFixed(4) : "0.0000"} Wh
+          </span>
+          <span className="text-[10px] text-muted-2 mt-0.5">via efficient gating</span>
+        </div>
+
+        <div className="p-3 rounded-xl bg-[#171f2d] border border-[#273549] flex flex-col justify-between">
+          <div className="flex items-center justify-between text-muted text-[10px] font-bold uppercase tracking-wider">
+            <span>Carbon Avoided</span>
+            <Leaf className="w-3.5 h-3.5 text-emerald-400" />
+          </div>
+          <span className="font-serif text-lg font-bold text-emerald-400 font-mono mt-1">
+            {stats.carbon_saved_g ? stats.carbon_saved_g.toFixed(4) : "0.0000"} g
+          </span>
+          <span className="text-[10px] text-muted-2 mt-0.5">CO2 emissions prevented</span>
         </div>
       </div>
 

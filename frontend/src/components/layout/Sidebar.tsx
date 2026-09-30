@@ -42,13 +42,15 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, setCollapsed }) => 
 
   return (
     <aside
-      className={`relative z-20 flex flex-col h-screen transition-all duration-300 border-r border-[#252d3d] bg-[#111622] text-[#e5e9f2] ${
-        collapsed ? 'w-20' : 'w-72'
+      className={`motion-drawer z-30 flex shrink-0 flex-col h-screen transition-all duration-300 border-r border-[#252d3d] bg-[#111622] text-[#e5e9f2] sm:z-20 ${
+        collapsed
+          ? 'fixed inset-y-0 left-0 w-72 -translate-x-full sm:relative sm:inset-auto sm:w-20 sm:translate-x-0'
+          : 'fixed inset-y-0 left-0 w-72 translate-x-0 shadow-2xl sm:relative sm:inset-auto sm:w-72'
       }`}
     >
       {/* Brand Header */}
       <div className={`border-b border-[#252d3d] transition-all duration-200 ${
-        collapsed ? 'p-3 flex flex-col items-center gap-3' : 'p-4 flex items-center justify-between'
+        collapsed ? 'p-2 sm:p-3 flex flex-col items-center gap-3' : 'p-4 flex items-center justify-between'
       }`}>
         <div className="flex items-center gap-3 min-w-0">
           <div className="flex items-center justify-center flex-shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400/20 via-sky-500/20 to-purple-500/20 border border-emerald-500/30 text-emerald-400 shadow-sm">
@@ -76,7 +78,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, setCollapsed }) => 
       </div>
 
       {/* Primary Navigation Tabs */}
-      <nav className="p-3 space-y-1.5">
+      <nav className="p-2 sm:p-3 space-y-1.5">
         {navItems.map((item) => {
           const isActive = activeTab === item.tab;
           return (
@@ -89,10 +91,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, setCollapsed }) => 
                   setActiveTab(item.tab);
                 }
               }}
-              className={`w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl font-medium text-sm transition-all duration-200 ${
+              className={`motion-press w-full flex items-center gap-3.5 px-2 sm:px-3.5 py-2.5 rounded-xl font-medium text-sm transition-all duration-200 border ${
                 isActive
-                  ? 'bg-gradient-to-r from-emerald-500/15 to-sky-500/10 text-emerald-400 border border-emerald-500/30 shadow-sm'
-                  : 'text-[#848fa5] hover:text-[#e5e9f2] hover:bg-[#1a202e]'
+                  ? 'bg-gradient-to-r from-emerald-500/15 to-sky-500/10 text-emerald-400 border-emerald-500/30 shadow-sm'
+                  : 'text-[#848fa5] hover:text-[#e5e9f2] hover:bg-[#1a202e] border-transparent'
               }`}
               title={collapsed ? item.label : undefined}
             >
@@ -168,7 +170,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed, setCollapsed }) => 
       )}
 
       {/* Bottom Section: Settings Icon Button at bottom-left + Provider Info */}
-      <div className="p-3 border-t border-[#252d3d] bg-[#0e121a]">
+      <div className="p-2 sm:p-3 border-t border-[#252d3d] bg-[#0e121a]">
         {!collapsed ? (
           <div className="flex items-center gap-2">
             {/* Settings button with icon only at bottom-left */}
