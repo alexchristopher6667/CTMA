@@ -97,6 +97,12 @@ export LLM_PROVIDER="groq"    # or "openai"
    ```
    Open `http://localhost:8000` in your browser.
 
+### UptimeRobot Health Monitor
+
+Monitor `https://<your-host>/api/health` as an HTTP(s) monitor and set its check interval to 5 minutes. The route supports `GET` and `HEAD`, returns `200` while the backend is running, and includes `X-Health-Status: healthy`.
+
+To require a monitor header, set `HEALTHCHECK_TOKEN` on the backend and configure UptimeRobot to send `X-Health-Check-Token` with the same value.
+
 ---
 
 ## Running in Google Colab

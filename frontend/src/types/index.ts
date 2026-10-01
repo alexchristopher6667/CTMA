@@ -41,6 +41,10 @@ export interface StreamMessage {
   receiver: string | null;
   content: string;
   confidence?: number | null;
+  duration_sec?: number;
+  message_type?: string;
+  sender_id?: string;
+  receiver_id?: string | null;
   timestamp: string;
 }
 
@@ -68,17 +72,52 @@ export interface DiscussionStats {
   messages_bypassed: number;
   overhead_reduction_pct: number;
   tokens_saved: number;
-  // Telemetry (TASK_BENCHMARK) — all default to 0 for backward compat
-  latency_multi_sec?: number;
-  latency_single_sec?: number;
-  latency_delta_pct?: number;
-  energy_multi_wh?: number;
-  energy_single_wh?: number;
-  energy_delta_pct?: number;
+
+  // --- Graph 1: Communication Overhead Comparison ---
+  overhead_normal_pct?: number; // 100.0%
+  overhead_adaptive_pct?: number; // actual % chatter
+
+  // --- Graph 2: Carbon Footprint Comparison (gCO2eq) ---
   carbon_multi_g?: number;
+  carbon_adaptive_multi_g?: number;
+  carbon_normal_multi_g?: number;
   carbon_single_g?: number;
   carbon_saved_g?: number;
+
+  // --- Graph 3: Response Time / Latency Comparison (seconds) ---
+  latency_multi_sec?: number;
+  latency_adaptive_multi_sec?: number;
+  latency_normal_multi_sec?: number;
+  latency_single_sec?: number;
+  latency_delta_pct?: number;
+  latency_time_saved_sec?: number;
+
+  // --- Graph 4: Token Economy & Tokens Saved ---
+  tokens_normal_multi?: number;
+  tokens_adaptive_multi?: number;
+  tokens_single_agent?: number;
+
+  // --- Energy (Wh) ---
+  energy_multi_wh?: number;
+  energy_normal_wh?: number;
+  energy_single_wh?: number;
+  energy_delta_pct?: number;
+
+  // --- Concurrency Speedup ---
   concurrency_time_saved_sec?: number;
+
+  // --- Timestamps in 3 Ways ---
+  // 1. Time taken for each response (average across turns)
+  avg_response_latency_sec?: number;
+  // 2. Time taken for each round of cross-talk
+  round_timings?: {
+    round_1_sec?: number;
+    round_2_sec?: number;
+    round_3_sec?: number;
+    synthesis_sec?: number;
+  };
+  // 3. Total round-trip time (RTT)
+  total_rtt_sec?: number;
 }
 
 // ---------------------------------------------------------------------------

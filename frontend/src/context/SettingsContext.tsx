@@ -29,7 +29,6 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       const saved = localStorage.getItem('ctmars_settings');
       if (saved) return { ...DEFAULT_SETTINGS, ...JSON.parse(saved) };
     } catch {
-      // fallback
     }
     return DEFAULT_SETTINGS;
   });
@@ -38,12 +37,13 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     try {
       localStorage.setItem('ctmars_settings', JSON.stringify(settings));
     } catch {
-      // ignore
     }
 
     const root = document.documentElement;
 
-    // 1. Resolve & Apply Theme (dark, light, system)
+    root.setAttribute('data-accent', settings.accentColor || 'emerald');
+    root.setAttribute('data-font-size', settings.fontSize || 'normal');
+
     const applyTheme = (isDark: boolean) => {
       root.classList.remove('dark', 'light');
       root.classList.add(isDark ? 'dark' : 'light');
@@ -61,11 +61,6 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       applyTheme(settings.theme === 'dark');
     }
 
-    // 2. Apply Accent Color
-    root.setAttribute('data-accent', settings.accentColor || 'emerald');
-
-    // 3. Apply Font Size Scaling
-    root.setAttribute('data-font-size', settings.fontSize || 'normal');
   }, [settings]);
 
   const updateSettings = (partial: Partial<AppSettings>) => {

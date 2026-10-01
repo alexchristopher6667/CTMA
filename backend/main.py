@@ -11,17 +11,24 @@ Serves static frontend assets, exposes:
 from __future__ import annotations
 
 import asyncio
+import html
+import hmac
 import os
+import re
+import threading
+import time
+from urllib.parse import urlparse
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, Query, Request, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 
 from communication import CommunicationManager
 import config
 from engine import CrossTalkEngine
 from models import StartDiscussionRequest
+from web_search import perform_web_search
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 FRONTEND_DIR = os.path.join(BASE_DIR, "frontend")
@@ -39,6 +46,17 @@ app.add_middleware(
 
 comm = CommunicationManager()
 engine = CrossTalkEngine(comm)
+SUGGESTION_CACHE_TTL_SECONDS = 6 * 60 * 60
+SUGGESTION_SEARCH_QUERIES = [
+    "latest science and technology research breakthroughs AI energy quantum biology",
+    "recent scientific discoveries artificial intelligence batteries climate quantum computing biotech",
+    "new research papers and technology breakthroughs published this week science engineering",
+    "latest university research news medicine robotics semiconductors materials science",
+]
+_suggestion_cache: list[dict[str, str]] = []
+_suggestion_cache_expires_at = 0.0
+_suggestion_cache_lock = threading.Lock()
+_suggestion_search_index = 0
 
 
 @app.get("/")
@@ -70,6 +88,75 @@ async def status() -> JSONResponse:
             "agents": [a.to_public() for a in engine.agents.values()],
         }
     )
+
+
+@app.api_route("/api/health", methods=["GET", "HEAD"])
+async def healthcheck(request: Request) -> Response:
+    headers = {"Cache-Control": "no-store", "X-Health-Status": "healthy"}
+    expected_token = os.environ.get("HEALTHCHECK_TOKEN")
+    supplied_token = request.headers.get("X-Health-Check-Token", "")
+
+    if expected_token and not hmac.compare_digest(supplied_token, expected_token):
+        headers["X-Health-Status"] = "unauthorized"
+        if request.method == "HEAD":
+            return Response(status_code=401, headers=headers)
+        return JSONResponse({"status": "unauthorized"}, status_code=401, headers=headers)
+
+    if request.method == "HEAD":
+        return Response(status_code=200, headers=headers)
+    return JSONResponse({"status": "ok"}, headers=headers)
+
+
+@app.get("/api/suggestions")
+def suggestions(refresh: bool = False, exclude: list[str] = Query(default=[])) -> JSONResponse:
+    global _suggestion_cache, _suggestion_cache_expires_at, _suggestion_search_index
+
+    with _suggestion_cache_lock:
+        if not refresh and time.monotonic() < _suggestion_cache_expires_at:
+            return JSONResponse(_suggestion_cache, headers={"Cache-Control": "no-store"})
+
+        search_query = SUGGESTION_SEARCH_QUERIES[
+            _suggestion_search_index % len(SUGGESTION_SEARCH_QUERIES)
+        ]
+        _suggestion_search_index += 1
+
+        try:
+            results = perform_web_search(
+                search_query,
+                max_results=12,
+            )
+        except Exception:
+            results = []
+
+        topics: list[dict[str, str]] = []
+        seen_headlines: set[str] = set()
+        excluded_queries = {query.casefold() for query in exclude}
+        for result in results:
+            raw_title = str(result.get("title") or "")
+            headline = html.unescape(re.sub(r"<[^>]+>", "", raw_title))
+            headline = re.sub(r"\s+", " ", headline).strip()[:180]
+            if not headline or headline.casefold() in seen_headlines:
+                continue
+
+            seen_headlines.add(headline.casefold())
+            domain = (urlparse(str(result.get("url") or "")).hostname or "").removeprefix("www.")
+            topic = {
+                "badge": domain or "Live research",
+                "query": (
+                    f"What does the latest evidence say about {headline}? "
+                    "Assess recent advances, practical implications, and open questions."
+                ),
+            }
+            if topic["query"].casefold() in excluded_queries:
+                continue
+            topics.append(topic)
+            if len(topics) == 3:
+                break
+
+        if topics or not refresh:
+            _suggestion_cache = topics
+            _suggestion_cache_expires_at = time.monotonic() + SUGGESTION_CACHE_TTL_SECONDS
+        return JSONResponse(topics, headers={"Cache-Control": "no-store"})
 
 
 @app.post("/api/start")

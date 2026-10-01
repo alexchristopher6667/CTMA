@@ -62,6 +62,7 @@ class CommunicationManager:
         round_number: int,
         message_type: MessageType,
         confidence: Optional[float] = None,
+        duration_sec: float = 0.0,
     ) -> Message:
         message = Message(
             id=str(uuid.uuid4()),
@@ -71,6 +72,7 @@ class CommunicationManager:
             round=round_number,
             message_type=message_type,
             confidence=confidence,
+            duration_sec=duration_sec,
         )
         # receiver_id is None for broadcast-style messages (e.g. a round-3
         # "to Team" statement) which have no single agent inbox to land in;

@@ -128,3 +128,53 @@ def calculate_carbon_footprint(energy_wh: float, grid_key: str = "global") -> fl
     """
     intensity = GRID_INTENSITIES.get(grid_key, GRID_INTENSITIES["global"])
     return round(energy_wh * (intensity / 1000.0), 8)
+
+
+def estimate_normal_multi_agent_baseline(
+    provider: str,
+    adaptive_prompt_tokens: int,
+    adaptive_completion_tokens: int,
+    adaptive_searches: int,
+    adaptive_latency_sec: float,
+    bypassed_messages_count: int,
+    tokens_saved_estimate: int,
+    concurrency_time_saved_sec: float = 0.0,
+    avg_turn_latency_sec: float = 1.65,
+) -> dict:
+    """Estimate what an unconstrained/normal multi-agent run would have cost.
+
+    In a standard (normal) multi-agent deliberation:
+      • No selective gating: all cross-talk edges execute (zero bypasses).
+      • Additional LLM turns are executed for each bypassed consultation.
+      • Sequential execution without concurrency optimization in refinement.
+    """
+    extra_prompt_tokens = tokens_saved_estimate
+    extra_completion_tokens = int(tokens_saved_estimate * 0.6)
+
+    normal_prompt = adaptive_prompt_tokens + extra_prompt_tokens
+    normal_completion = adaptive_completion_tokens + extra_completion_tokens
+    normal_tokens = normal_prompt + normal_completion
+
+    # Wall-clock latency penalty if all bypassed turns had run sequentially
+    bypassed_latency = bypassed_messages_count * max(1.2, avg_turn_latency_sec)
+    normal_latency = round(adaptive_latency_sec + bypassed_latency + concurrency_time_saved_sec, 4)
+
+    energy = compute_turn_energy(
+        provider=provider,
+        prompt_tokens=normal_prompt,
+        completion_tokens=normal_completion,
+        searches_count=adaptive_searches,
+        duration_sec=normal_latency,
+    )
+
+    carbon_g = calculate_carbon_footprint(energy["e_total_wh"])
+
+    return {
+        "prompt_tokens": normal_prompt,
+        "completion_tokens": normal_completion,
+        "total_tokens": normal_tokens,
+        "latency_sec": normal_latency,
+        "carbon_g": carbon_g,
+        **energy,
+    }
+

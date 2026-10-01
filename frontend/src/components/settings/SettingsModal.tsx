@@ -51,12 +51,9 @@ export const SettingsModal: React.FC = () => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-      {/* Backdrop click to dismiss */}
       <div className="absolute inset-0" onClick={() => setIsSettingsModalOpen(false)} />
 
-      {/* Floating Dialog Box */}
       <div className="relative z-10 w-full max-w-lg rounded-3xl bg-[#121722] border border-[#2a3447] shadow-2xl p-6 space-y-6 text-[#e5e9f2] animate-scale-up max-h-[90dvh] overflow-y-auto">
-        {/* Header */}
         <div className="flex items-center justify-between border-b border-[#252f41] pb-4">
           <div className="flex items-center gap-2.5">
             <div className="flex items-center justify-center w-8 h-8 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400">
@@ -76,7 +73,6 @@ export const SettingsModal: React.FC = () => {
           </button>
         </div>
 
-        {/* 1. Theme Selection */}
         <div className="space-y-2.5">
           <label className="text-xs font-semibold text-muted uppercase tracking-wider flex items-center gap-1.5">
             <Sun className="w-3.5 h-3.5 text-emerald-400" /> Theme Mode
@@ -102,7 +98,6 @@ export const SettingsModal: React.FC = () => {
           </div>
         </div>
 
-        {/* 2. Accent Color Swatches */}
         <div className="space-y-2.5">
           <label className="text-xs font-semibold text-muted uppercase tracking-wider flex items-center gap-1.5">
             <Palette className="w-3.5 h-3.5 text-emerald-400" /> Accent Color
@@ -127,7 +122,6 @@ export const SettingsModal: React.FC = () => {
           </div>
         </div>
 
-        {/* 3. Text Size */}
         <div className="space-y-2.5">
           <label className="text-xs font-semibold text-muted uppercase tracking-wider flex items-center gap-1.5">
             <Type className="w-3.5 h-3.5 text-emerald-400" /> Text Size Scale
@@ -153,7 +147,6 @@ export const SettingsModal: React.FC = () => {
           </div>
         </div>
 
-        {/* 4. Default Accuracy Mode */}
         <div className="space-y-2.5">
           <label className="text-xs font-semibold text-muted uppercase tracking-wider flex items-center gap-1.5">
             <Scale className="w-3.5 h-3.5 text-emerald-400" /> Default Gating &amp; Rigor
@@ -187,7 +180,6 @@ export const SettingsModal: React.FC = () => {
           </div>
         </div>
 
-        {/* 5. Engine Provider Info */}
         <div className="p-3.5 rounded-2xl bg-[#0f141f] border border-[#232d3f] flex items-center justify-between text-xs">
           <div className="flex items-center gap-2">
             <Cpu className="w-4 h-4 text-sky-400" />
@@ -206,7 +198,6 @@ export const SettingsModal: React.FC = () => {
           </div>
         </div>
 
-        {/* Footer Actions */}
         <div className="flex items-center justify-between pt-2 border-t border-[#252f41]">
           <button
             onClick={resetSettings}

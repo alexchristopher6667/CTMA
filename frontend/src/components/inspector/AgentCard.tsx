@@ -105,7 +105,6 @@ export const AgentCard: React.FC<AgentCardProps> = ({ agent }) => {
     <div
       className={`rounded-2xl p-4 border ${theme.border} ${theme.bg} shadow-glass transition-all duration-300 flex flex-col gap-3`}
     >
-      {/* Top Header */}
       <div className="flex items-start justify-between gap-2">
         <div className="flex items-center gap-2.5 min-w-0">
           <div className="flex items-center justify-center w-8 h-8 rounded-xl bg-black/30 border border-white/10 shrink-0">
@@ -129,13 +128,11 @@ export const AgentCard: React.FC<AgentCardProps> = ({ agent }) => {
         )}
       </div>
 
-      {/* Status Pill */}
       <div className="flex items-center justify-between">
         <span className="text-[10px] uppercase font-bold tracking-wider text-muted-2">Status</span>
         {getStatusBadge()}
       </div>
 
-      {/* Thought Stream Box */}
       <div className="p-3 rounded-xl bg-black/40 border border-white/5 max-h-28 overflow-y-auto">
         <p className="text-xs text-[#c0cad8] leading-relaxed italic">
           {agent.current_reasoning || 'Waiting for debate to begin...'}

@@ -49,7 +49,6 @@ export const Header: React.FC<{ onOpenSidebar: () => void }> = ({ onOpenSidebar 
 
   return (
     <header className="absolute top-0 left-0 right-0 z-20 flex h-[72px] min-h-[72px] shrink-0 items-center justify-between gap-2 px-3 border-b border-white/15 bg-[#111622]/45 shadow-lg shadow-black/10 backdrop-blur-2xl backdrop-saturate-150 sm:gap-4 sm:px-6">
-      {/* Title & Status */}
       <div className="flex min-w-0 items-center gap-2 sm:gap-4">
         <button
           type="button"
@@ -77,9 +76,7 @@ export const Header: React.FC<{ onOpenSidebar: () => void }> = ({ onOpenSidebar 
         )}
       </div>
 
-      {/* Header Actions */}
       <div className="flex shrink-0 items-center gap-1.5 sm:gap-3">
-        {/* Accuracy Mode Selector (Only on Chat tab) */}
         {activeTab === 'chat' && (
           <div className="flex items-center p-0.5 rounded-xl bg-[#141a26] border border-[#252d3d] sm:p-1">
             {modes.map((m) => {
@@ -105,7 +102,6 @@ export const Header: React.FC<{ onOpenSidebar: () => void }> = ({ onOpenSidebar 
           </div>
         )}
 
-        {/* Technical Multi-Agent Inspector Toggle (Only on Chat tab) */}
         {activeTab === 'chat' && (
           <button
             onClick={() => setIsInspectorExpanded((prev) => !prev)}

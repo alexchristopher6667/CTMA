@@ -70,6 +70,7 @@ class Message(BaseModel):
     round: int
     message_type: MessageType
     timestamp: float = Field(default_factory=time.time)
+    duration_sec: float = 0.0
     # Internal telemetry (backend data only -- the existing frontend does not
     # read these fields, so adding them is additive and UI-safe). See
     # models.Evidence below for what a confidence score is derived from.
@@ -84,6 +85,7 @@ class Message(BaseModel):
             "round": self.round,
             "message_type": self.message_type.value,
             "timestamp": self.timestamp,
+            "duration_sec": round(self.duration_sec, 3),
             "confidence": self.confidence,
         }
 
@@ -141,31 +143,52 @@ class DiscussionStats(BaseModel):
     that pre-date this schema never crash the frontend.
     """
 
-    # --- existing counters (unchanged) ---
+    # --- 1. Communication Overhead Comparison ---
     confidence_threshold: float = 0.75
     uncertainty_threshold: float = 0.25
     messages_sent: int = 0
     messages_bypassed: int = 0
+    overhead_normal_pct: float = 100.0
+    overhead_adaptive_pct: float = 0.0
     overhead_reduction_pct: int = 0
+
+    # --- 2. Token Economy & Tokens Saved ---
+    tokens_normal_multi: int = 0
+    tokens_adaptive_multi: int = 0
+    tokens_single_agent: int = 0
     tokens_saved: int = 0
 
-    # --- latency ---
+    # --- 3. Latency & Time Taken Comparison ---
     latency_multi_sec: float = 0.0
+    latency_adaptive_multi_sec: float = 0.0
+    latency_normal_multi_sec: float = 0.0
     latency_single_sec: float = 0.0
     latency_delta_pct: float = 0.0
+    latency_time_saved_sec: float = 0.0
 
-    # --- energy ---
-    energy_multi_wh: float = 0.0
-    energy_single_wh: float = 0.0
-    energy_delta_pct: float = 0.0
-
-    # --- carbon ---
+    # --- 4. Carbon Footprint Comparison (gCO2eq) ---
     carbon_multi_g: float = 0.0
+    carbon_adaptive_multi_g: float = 0.0
+    carbon_normal_multi_g: float = 0.0
     carbon_single_g: float = 0.0
     carbon_saved_g: float = 0.0
 
-    # --- concurrency ---
+    # --- Energy (Wh) ---
+    energy_multi_wh: float = 0.0
+    energy_normal_wh: float = 0.0
+    energy_single_wh: float = 0.0
+    energy_delta_pct: float = 0.0
+
+    # --- Concurrency Speedup ---
     concurrency_time_saved_sec: float = 0.0
+
+    # --- 3-Way Timestamps ---
+    # 1. Per-response latency average across agent turns
+    avg_response_latency_sec: float = 0.0
+    # 2. Per-round duration breakdown
+    round_timings: dict[str, float] = Field(default_factory=dict)
+    # 3. Total round-trip time (RTT)
+    total_rtt_sec: float = 0.0
 
 
 class StartDiscussionRequest(BaseModel):

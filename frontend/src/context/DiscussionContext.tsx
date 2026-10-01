@@ -51,7 +51,6 @@ const MODE_THRESHOLDS: Record<AccuracyMode, number> = {
 };
 
 interface DiscussionContextValue {
-  // State
   activeTab: AppTab;
   setActiveTab: (tab: AppTab) => void;
   isInspectorExpanded: boolean;
@@ -59,7 +58,6 @@ interface DiscussionContextValue {
   accuracyMode: AccuracyMode;
   setAccuracyMode: (mode: AccuracyMode) => void;
 
-  // Live discussion state (current in-progress query)
   running: boolean;
   currentRound: number;
   currentQuery: string;
@@ -74,22 +72,96 @@ interface DiscussionContextValue {
   error: string | null;
   isBackendConnected: boolean;
 
-  // Workflow trace (live execution timeline)
   workflowTrace: TraceEvent[];
 
-  // Multi-turn turns for current session
   turns: ChatTurn[];
 
-  // Session history (sidebar)
   sessions: ChatSession[];
   currentSessionId: string | null;
 
-  // Actions
   startDiscussion: (task: string, modeOverride?: AccuracyMode) => Promise<void>;
   stopDiscussion: () => Promise<void>;
   clearHistory: () => void;
   loadSession: (sessionId: string) => void;
   newSession: () => void;
+  deleteSession: (sessionId: string, e?: React.MouseEvent) => void;
+}
+
+export const generateUniqueId = (prefix: string = 'id'): string => {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    return `${prefix}-${crypto.randomUUID()}`;
+  }
+  return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+};
+
+export function sanitizeSessions(rawSessions: any[]): ChatSession[] {
+  if (!Array.isArray(rawSessions)) return [];
+  const seenIds = new Set<string>();
+  const sanitized: ChatSession[] = [];
+
+  for (let idx = 0; idx < rawSessions.length; idx++) {
+    const raw = rawSessions[idx];
+    if (!raw || typeof raw !== 'object') continue;
+
+    // Ensure strictly unique session ID
+    let sessId = typeof raw.id === 'string' && raw.id.trim() ? raw.id.trim() : '';
+    if (!sessId || seenIds.has(sessId)) {
+      sessId = generateUniqueId('sess');
+    }
+    seenIds.add(sessId);
+
+    // Sanitize turns
+    const rawTurns = Array.isArray(raw.turns) ? raw.turns : [];
+    const seenTurnIds = new Set<string>();
+    const cleanedTurns: ChatTurn[] = [];
+
+    for (const t of rawTurns) {
+      if (!t || typeof t !== 'object') continue;
+      let turnId = typeof t.id === 'string' && t.id.trim() ? t.id.trim() : '';
+      if (!turnId || seenTurnIds.has(turnId)) {
+        turnId = generateUniqueId('turn');
+      }
+      seenTurnIds.add(turnId);
+
+      cleanedTurns.push({
+        ...t,
+        id: turnId,
+        query: t.query || 'Research Inquiry',
+        synthesis: t.synthesis || '',
+        evidence: Array.isArray(t.evidence) ? t.evidence : [],
+        streamMessages: Array.isArray(t.streamMessages) ? t.streamMessages : [],
+        decisions: Array.isArray(t.decisions) ? t.decisions : [],
+        agentSnapshots: t.agentSnapshots || INITIAL_AGENTS,
+        accuracyMode: t.accuracyMode || 'balanced',
+        provider: t.provider || 'groq',
+        model: t.model || 'openai/gpt-oss-20b',
+        timestamp: t.timestamp || new Date().toLocaleTimeString(),
+      });
+    }
+
+    let title = typeof raw.title === 'string' ? raw.title.trim() : '';
+    if (!title || title.toLowerCase() === 'untitled investigation') {
+      const firstTurnQuery = cleanedTurns[0]?.query?.trim();
+      if (firstTurnQuery && firstTurnQuery.toLowerCase() !== 'research inquiry') {
+        title = firstTurnQuery.slice(0, 65) + (firstTurnQuery.length > 65 ? '...' : '');
+      } else {
+        title = `Investigation #${idx + 1}`;
+      }
+    }
+
+    sanitized.push({
+      ...raw,
+      id: sessId,
+      title,
+      timestamp: raw.timestamp || new Date().toLocaleString(),
+      turns: cleanedTurns,
+      accuracy_mode: raw.accuracy_mode || 'balanced',
+      provider: raw.provider || 'groq',
+      model: raw.model || 'openai/gpt-oss-20b',
+    });
+  }
+
+  return sanitized;
 }
 
 const DiscussionContext = createContext<DiscussionContextValue | undefined>(undefined);
@@ -122,24 +194,22 @@ export const DiscussionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [error, setError] = useState<string | null>(null);
   const [isBackendConnected, setIsBackendConnected] = useState<boolean>(false);
 
-  // Live Workflow Trace — chronological event log
   const [workflowTrace, setWorkflowTrace] = useState<TraceEvent[]>([]);
 
-  // Completed turns in current session
   const [turns, setTurns] = useState<ChatTurn[]>([]);
 
   const [sessions, setSessions] = useState<ChatSession[]>(() => {
     try {
-      const saved = localStorage.getItem('ctmars_sessions_v2');
-      if (saved) return JSON.parse(saved);
+      const savedV2 = localStorage.getItem('ctmars_sessions_v2');
+      if (savedV2) return sanitizeSessions(JSON.parse(savedV2));
+      const savedV1 = localStorage.getItem('ctmars_sessions');
+      if (savedV1) return sanitizeSessions(JSON.parse(savedV1));
     } catch {
-      // ignore
     }
     return [];
   });
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
 
-  // Helper to push a trace event
   const pushTrace = (evt: Omit<TraceEvent, 'id' | 'timestamp'>) => {
     const traceEvt: TraceEvent = {
       ...evt,
@@ -149,7 +219,6 @@ export const DiscussionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     setWorkflowTrace((prev) => [...prev, traceEvt]);
   };
 
-  // Agent name lookup
   const agentName = (id: string): string => {
     const names: Record<string, string> = {
       research: 'Dr. Elena Chen',
@@ -162,6 +231,12 @@ export const DiscussionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   // Refs for live snapshot capture (used in async recordTurn)
   const accuracyModeRef = useRef(accuracyMode);
   accuracyModeRef.current = accuracyMode;
+  useEffect(() => {
+    if (currentSessionId !== null || running || turns.length > 0) return;
+    setAccuracyMode(settings.defaultMode);
+    accuracyModeRef.current = settings.defaultMode;
+  }, [settings.defaultMode, currentSessionId, running, turns.length]);
+
   const evidenceRef = useRef<EvidenceItem[]>([]);
   const streamMessagesRef = useRef<StreamMessage[]>([]);
   const decisionsRef = useRef<CommunicationDecision[]>([]);
@@ -174,7 +249,6 @@ export const DiscussionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   const socketRef = useRef<WebSocket | null>(null);
 
-  // Keep refs in sync with state
   useEffect(() => { evidenceRef.current = evidence; }, [evidence]);
   useEffect(() => { streamMessagesRef.current = streamMessages; }, [streamMessages]);
   useEffect(() => { decisionsRef.current = decisions; }, [decisions]);
@@ -185,16 +259,13 @@ export const DiscussionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   useEffect(() => { modelRef.current = model; }, [model]);
   useEffect(() => { currentSessionIdRef.current = currentSessionId; }, [currentSessionId]);
 
-  // Sync sessions to localStorage
   useEffect(() => {
     try {
       localStorage.setItem('ctmars_sessions_v2', JSON.stringify(sessions));
     } catch {
-      // ignore
     }
   }, [sessions]);
 
-  // Connect WebSocket
   useEffect(() => {
     let ws: WebSocket | null = null;
     let reconnectTimeout: ReturnType<typeof setTimeout>;
@@ -253,7 +324,6 @@ export const DiscussionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
     connect();
 
-    // Check status API
     fetch(`${API_BASE_URL}/api/status`)
       .then((res) => res.json())
       .then((data) => {
@@ -284,6 +354,10 @@ export const DiscussionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         setStreamMessages([]);
         setDecisions([]);
         setWorkflowTrace([]);
+        if (evt.task) {
+          setCurrentQuery(evt.task);
+          currentQueryRef.current = evt.task;
+        }
         if (evt.provider) setProvider(evt.provider);
         if (evt.model) setModel(evt.model);
         setAgents((prev) => ({
@@ -408,12 +482,16 @@ export const DiscussionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
           setStreamMessages((prev) => [
             ...prev,
             {
-              id: `${Date.now()}-${Math.random()}`,
+              id: msg.id || `${Date.now()}-${Math.random()}`,
               round: msg.round,
               sender: msg.sender,
               receiver: msg.receiver,
               content: msg.content,
               confidence: msg.confidence,
+              duration_sec: msg.duration_sec || 0,
+              message_type: msg.message_type,
+              sender_id: evt.sender_id,
+              receiver_id: evt.receiver_id,
               timestamp: new Date().toLocaleTimeString(),
             },
           ]);
@@ -491,7 +569,6 @@ export const DiscussionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
           return updated;
         });
 
-        // Trigger celebratory confetti
         confetti({
           particleCount: 50,
           spread: 60,
@@ -499,8 +576,7 @@ export const DiscussionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
           colors: ['#38d39f', '#5fa8ff', '#e8b355'],
         });
 
-        // Record completed turn
-        recordTurn(evt.collective_reasoning, evt.stats);
+        recordTurn(evt.collective_reasoning, evt.stats, evt.task);
         break;
 
       case 'discussion_error':
@@ -525,10 +601,12 @@ export const DiscussionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     }
   };
 
-  const recordTurn = (synthesis: string, finalStats: DiscussionStats) => {
+  const recordTurn = (synthesis: string, finalStats: DiscussionStats, taskOverride?: string) => {
+    const rawQuery = taskOverride || currentQueryRef.current || '';
+    const queryText = rawQuery.trim();
     const newTurn: ChatTurn = {
-      id: `turn-${Date.now()}`,
-      query: currentQueryRef.current,
+      id: generateUniqueId('turn'),
+      query: queryText || 'Research Inquiry',
       synthesis,
       stats: finalStats,
       evidence: [...evidenceRef.current],
@@ -541,27 +619,29 @@ export const DiscussionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       timestamp: new Date().toLocaleTimeString(),
     };
 
-    // Read refs synchronously BEFORE any state setters
+    // Capture the session ID before updating state.
     const existingSessionId = currentSessionIdRef.current;
 
     if (existingSessionId) {
-      // Existing session — update its turns array
+      // Append the turn and move the session to the top.
       setTurns((prev) => [...prev, newTurn]);
-      setSessions((prev) =>
-        prev.map((s) =>
-          s.id === existingSessionId
-            ? { ...s, turns: [...(s.turns || []), newTurn] }
-            : s
-        )
-      );
+      setSessions((prev) => {
+        const existing = prev.find((s) => s.id === existingSessionId);
+        if (!existing) return prev;
+        const updatedSession: ChatSession = {
+          ...existing,
+          timestamp: new Date().toLocaleString(),
+          turns: [...(existing.turns || []), newTurn],
+        };
+        return [updatedSession, ...prev.filter((s) => s.id !== existingSessionId)];
+      });
     } else {
-      // New session — generate ID now, update ref IMMEDIATELY to prevent duplicates
-      const newSessionId = `session-${Date.now()}`;
+      const newSessionId = generateUniqueId('sess');
       currentSessionIdRef.current = newSessionId; // synchronous guard
 
-      const sessionTitle =
-        currentQueryRef.current.slice(0, 65) +
-        (currentQueryRef.current.length > 65 ? '...' : '');
+      const sessionTitle = queryText
+        ? queryText.slice(0, 65) + (queryText.length > 65 ? '...' : '')
+        : `Investigation (${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })})`;
 
       const newSession: ChatSession = {
         id: newSessionId,
@@ -573,7 +653,7 @@ export const DiscussionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         model: modelRef.current,
       };
 
-      setTurns([newTurn]);                          // fresh turn list for new session
+      setTurns([newTurn]); // fresh turn list for new session
       setSessions((prev) => [newSession, ...prev]);
       setCurrentSessionId(newSessionId);
     }
@@ -587,13 +667,17 @@ export const DiscussionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     const threshold = MODE_THRESHOLDS[mode] || settings.defaultThreshold;
 
     setCurrentQuery(q);
+    currentQueryRef.current = q; // Synchronous ref guard
     setError(null);
     setRunning(true);
     setCollectiveReasoning(null);
     setCurrentRound(1);
     setDecisions([]);
+    decisionsRef.current = [];
     setStreamMessages([]);
+    streamMessagesRef.current = [];
     setEvidence([]);
+    evidenceRef.current = [];
     setWorkflowTrace([]);
 
     try {
@@ -628,39 +712,93 @@ export const DiscussionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const clearHistory = () => {
     setSessions([]);
     localStorage.removeItem('ctmars_sessions_v2');
+    newSession();
   };
 
   const newSession = () => {
+    if (running) return;
     setCurrentSessionId(null);
+    currentSessionIdRef.current = null; // Synchronous ref guard
     setTurns([]);
     setCurrentQuery('');
+    currentQueryRef.current = '';
     setCollectiveReasoning(null);
     setError(null);
     setEvidence([]);
+    evidenceRef.current = [];
     setStreamMessages([]);
+    streamMessagesRef.current = [];
     setDecisions([]);
+    decisionsRef.current = [];
     setWorkflowTrace([]);
     setAgents(INITIAL_AGENTS);
+    agentsRef.current = INITIAL_AGENTS;
+    setAccuracyMode(settings.defaultMode);
+    accuracyModeRef.current = settings.defaultMode;
+    setActiveTab('chat');
   };
 
   const loadSession = (sessionId: string) => {
+    if (running) return; // Prevent corrupting in-progress live deliberation
     const sess = sessions.find((s) => s.id === sessionId);
     if (!sess) return;
 
     setCurrentSessionId(sess.id);
-    setTurns(sess.turns || []);
+    currentSessionIdRef.current = sess.id; // Synchronous ref guard
+    const sessTurns = sess.turns || [];
+    setTurns(sessTurns);
     setCurrentQuery('');
+    currentQueryRef.current = '';
     setCollectiveReasoning(null);
     setError(null);
+    setWorkflowTrace([]);
     setActiveTab('chat');
 
-    // Load last turn's data for context
-    const lastTurn = sess.turns?.[sess.turns.length - 1];
+    const lastTurn = sessTurns[sessTurns.length - 1];
     if (lastTurn) {
-      setEvidence(lastTurn.evidence);
-      setStreamMessages(lastTurn.streamMessages);
-      setDecisions(lastTurn.decisions);
-      if (lastTurn.stats) setStats(lastTurn.stats);
+      setEvidence(lastTurn.evidence || []);
+      evidenceRef.current = lastTurn.evidence || [];
+      setStreamMessages(lastTurn.streamMessages || []);
+      streamMessagesRef.current = lastTurn.streamMessages || [];
+      setDecisions(lastTurn.decisions || []);
+      decisionsRef.current = lastTurn.decisions || [];
+      if (lastTurn.stats) {
+        setStats(lastTurn.stats);
+        statsRef.current = lastTurn.stats;
+      }
+      if (lastTurn.agentSnapshots) {
+        setAgents(lastTurn.agentSnapshots);
+        agentsRef.current = lastTurn.agentSnapshots;
+      } else {
+        setAgents(INITIAL_AGENTS);
+        agentsRef.current = INITIAL_AGENTS;
+      }
+      if (lastTurn.accuracyMode) {
+        setAccuracyMode(lastTurn.accuracyMode);
+        accuracyModeRef.current = lastTurn.accuracyMode;
+      }
+    } else {
+      setEvidence([]);
+      evidenceRef.current = [];
+      setStreamMessages([]);
+      streamMessagesRef.current = [];
+      setDecisions([]);
+      decisionsRef.current = [];
+      setAgents(INITIAL_AGENTS);
+      agentsRef.current = INITIAL_AGENTS;
+    }
+  };
+
+  const deleteSession = (sessionId: string, e?: React.MouseEvent) => {
+    if (e) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
+    if (running && currentSessionIdRef.current === sessionId) return;
+
+    setSessions((prev) => prev.filter((s) => s.id !== sessionId));
+    if (currentSessionId === sessionId || currentSessionIdRef.current === sessionId) {
+      newSession();
     }
   };
 
@@ -700,6 +838,7 @@ export const DiscussionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         clearHistory,
         loadSession,
         newSession,
+        deleteSession,
       }}
     >
       {children}

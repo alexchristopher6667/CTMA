@@ -13,7 +13,6 @@ import {
 import { useDiscussion } from '../../context/DiscussionContext';
 import { TraceEvent, TraceEventType } from '../../types';
 
-// Agent color mapping (Research = Sky, Analyst = Amber, Critic = Rose)
 const AGENT_COLORS: Record<string, { dot: string; text: string; border: string; bg: string }> = {
   research: {
     dot: 'bg-sky-400',
@@ -42,7 +41,6 @@ const DEFAULT_COLOR = {
   bg: 'bg-emerald-500/10',
 };
 
-// Event-type icon and style mapping
 const EVENT_CONFIG: Record<
   TraceEventType,
   {
@@ -102,9 +100,7 @@ const TraceItem: React.FC<{ event: TraceEvent; isLast: boolean }> = ({ event, is
 
   return (
     <div className="relative flex gap-3 group animate-fade-in">
-      {/* Timeline connector line */}
       <div className="flex flex-col items-center flex-shrink-0 w-8">
-        {/* Dot */}
         <div
           className={`
             relative z-10 flex items-center justify-center w-7 h-7 rounded-full
@@ -115,17 +111,13 @@ const TraceItem: React.FC<{ event: TraceEvent; isLast: boolean }> = ({ event, is
         >
           <span className={agentColor.text}>{config.icon}</span>
         </div>
-        {/* Vertical line */}
         {!isLast && (
           <div className="w-px flex-1 bg-gradient-to-b from-[#263143] to-transparent min-h-[16px]" />
         )}
       </div>
 
-      {/* Content */}
       <div className="flex-1 pb-4 min-w-0">
-        {/* Header row */}
         <div className="flex items-center gap-2 flex-wrap">
-          {/* Type badge */}
           <span
             className={`
               text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded
@@ -147,20 +139,17 @@ const TraceItem: React.FC<{ event: TraceEvent; isLast: boolean }> = ({ event, is
             {isDecisionBypass ? 'BYPASS' : isDecisionApproach ? 'APPROACH' : config.label}
           </span>
 
-          {/* Agent name */}
           {event.agentName && (
             <span className={`text-[11px] font-semibold ${agentColor.text}`}>
               {event.agentName}
             </span>
           )}
 
-          {/* Timestamp */}
           <span className="text-[10px] font-mono text-muted-2 ml-auto flex-shrink-0">
             {event.timestamp}
           </span>
         </div>
 
-        {/* Title */}
         <p
           className={`text-xs font-medium mt-1 leading-relaxed ${
             event.type === 'think'
@@ -173,14 +162,12 @@ const TraceItem: React.FC<{ event: TraceEvent; isLast: boolean }> = ({ event, is
           {event.title}
         </p>
 
-        {/* Detail */}
         {event.detail && (
           <p className="text-[11px] text-muted mt-1 leading-relaxed line-clamp-2">
             {event.detail}
           </p>
         )}
 
-        {/* Meta badges for decisions */}
         {event.type === 'decision' && event.meta && (
           <div className="flex items-center gap-2 mt-1.5 flex-wrap">
             {typeof event.meta.d_score === 'number' && (
@@ -201,7 +188,6 @@ const TraceItem: React.FC<{ event: TraceEvent; isLast: boolean }> = ({ event, is
           </div>
         )}
 
-        {/* Source link for evidence */}
         {event.type === 'search' && event.meta?.url && (
           <a
             href={event.meta.url}
@@ -222,7 +208,6 @@ export const LiveWorkflowTrace: React.FC = () => {
   const { workflowTrace, running } = useDiscussion();
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll to bottom when new events arrive
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -249,7 +234,6 @@ export const LiveWorkflowTrace: React.FC = () => {
 
   return (
     <div className="rounded-2xl bg-[#121722]/95 border border-[#263143] shadow-glass overflow-hidden">
-      {/* Header */}
       <div className="flex items-center justify-between px-5 py-3.5 border-b border-[#252e3e]">
         <div className="flex items-center gap-2">
           <div className="relative flex items-center justify-center w-7 h-7 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400">
@@ -274,7 +258,6 @@ export const LiveWorkflowTrace: React.FC = () => {
         </span>
       </div>
 
-      {/* Timeline container with auto-scroll */}
       <div
         ref={scrollRef}
         className="max-h-96 overflow-y-auto px-5 pt-4 pb-2"

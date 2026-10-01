@@ -23,7 +23,6 @@ const AppContent: React.FC = () => {
 
   return (
     <div className="flex h-dvh w-screen overflow-hidden bg-[#0b0f17] text-[#e5e9f2]">
-      {/* Collapsible Sidebar */}
       <Sidebar collapsed={sidebarCollapsed} setCollapsed={setSidebarCollapsed} />
       {!sidebarCollapsed && (
         <button
@@ -34,12 +33,9 @@ const AppContent: React.FC = () => {
         />
       )}
 
-      {/* Main View Area */}
       <div className="relative flex min-w-0 flex-col flex-1 h-dvh overflow-hidden">
-        {/* Top Header */}
         <Header onOpenSidebar={() => setSidebarCollapsed(false)} />
 
-        {/* Tab Content */}
         <main className="flex-1 min-h-0 overflow-hidden flex flex-col">
           {activeTab === 'chat' && <ChatThread />}
           {activeTab === 'dashboard' && <AnalyticsDashboard />}
@@ -47,7 +43,6 @@ const AppContent: React.FC = () => {
         </main>
       </div>
 
-      {/* Floating System Preferences Modal / Dropdown */}
       <SettingsModal />
     </div>
   );

@@ -7,7 +7,6 @@ export const OverheadDashboard: React.FC = () => {
 
   return (
     <div className="rounded-2xl p-5 bg-[#121722]/95 border border-[#263143] shadow-glass space-y-4">
-      {/* Title Header */}
       <div className="flex items-center justify-between border-b border-[#252e3e] pb-3 flex-wrap gap-2">
         <div className="flex items-center gap-2">
           <TrendingDown className="w-5 h-5 text-emerald-400" />
@@ -20,7 +19,6 @@ export const OverheadDashboard: React.FC = () => {
         </span>
       </div>
 
-      {/* 6 Stat Cards Grid */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
         <div className="p-3 rounded-xl bg-[#171f2d] border border-[#273549] flex flex-col justify-between">
           <span className="text-[10px] font-bold uppercase text-muted tracking-wider">Overhead Reduced</span>
@@ -77,7 +75,6 @@ export const OverheadDashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Decision Feed Stream */}
       <div className="space-y-1.5">
         <span className="text-[11px] font-bold text-muted uppercase tracking-wider">Live Decision Audit Feed</span>
         <div className="max-h-36 overflow-y-auto rounded-xl bg-[#0f141e] border border-[#222c3d] p-2 space-y-1.5">

@@ -179,14 +179,40 @@ def test_discussion_stats_serialization():
     expected_keys = {
         "confidence_threshold", "uncertainty_threshold",
         "messages_sent", "messages_bypassed",
-        "overhead_reduction_pct", "tokens_saved",
-        "latency_multi_sec", "latency_single_sec", "latency_delta_pct",
-        "energy_multi_wh", "energy_single_wh", "energy_delta_pct",
-        "carbon_multi_g", "carbon_single_g", "carbon_saved_g",
+        "overhead_normal_pct", "overhead_adaptive_pct", "overhead_reduction_pct",
+        "tokens_normal_multi", "tokens_adaptive_multi", "tokens_single_agent", "tokens_saved",
+        "latency_multi_sec", "latency_adaptive_multi_sec", "latency_normal_multi_sec",
+        "latency_single_sec", "latency_delta_pct", "latency_time_saved_sec",
+        "energy_multi_wh", "energy_normal_wh", "energy_single_wh", "energy_delta_pct",
+        "carbon_multi_g", "carbon_adaptive_multi_g", "carbon_normal_multi_g",
+        "carbon_single_g", "carbon_saved_g",
         "concurrency_time_saved_sec",
+        "avg_response_latency_sec", "round_timings", "total_rtt_sec",
     }
     assert expected_keys == set(d.keys())
-    print("  ✓ test_discussion_stats_serialization")
+    print("  [PASS] test_discussion_stats_serialization")
+
+
+def test_estimate_normal_multi_agent_baseline():
+    import telemetry
+
+    normal = telemetry.estimate_normal_multi_agent_baseline(
+        provider="groq",
+        adaptive_prompt_tokens=1000,
+        adaptive_completion_tokens=500,
+        adaptive_searches=1,
+        adaptive_latency_sec=4.5,
+        bypassed_messages_count=2,
+        tokens_saved_estimate=800,
+        concurrency_time_saved_sec=1.5,
+        avg_turn_latency_sec=1.4,
+    )
+    assert normal["prompt_tokens"] == 1800  # 1000 + 800
+    assert normal["completion_tokens"] == 500 + int(800 * 0.6)  # 500 + 480 = 980
+    assert normal["total_tokens"] == 1800 + 980
+    assert normal["latency_sec"] > 4.5
+    assert normal["carbon_g"] > 0.0
+    print("  [PASS] test_estimate_normal_multi_agent_baseline")
 
 
 def test_discussion_stats_backward_compat():
@@ -205,7 +231,9 @@ def test_discussion_stats_backward_compat():
     # New fields default to 0
     assert stats.latency_multi_sec == 0.0
     assert stats.carbon_saved_g == 0.0
-    print("  ✓ test_discussion_stats_backward_compat")
+    assert stats.overhead_normal_pct == 100.0
+    print("  [PASS] test_discussion_stats_backward_compat")
+
 
 
 # ── providers.py AgentTurnResult ──────────────────────────────────────────
@@ -271,6 +299,7 @@ def main():
         test_zero_inputs,
         test_discussion_stats_defaults,
         test_discussion_stats_serialization,
+        test_estimate_normal_multi_agent_baseline,
         test_discussion_stats_backward_compat,
         test_agent_turn_result_telemetry_fields,
         test_engine_telemetry_accumulators_exist,
@@ -282,14 +311,14 @@ def main():
             fn()
             passed += 1
         except Exception as exc:
-            print(f"  ✗ {fn.__name__}: {exc}")
+            print(f"  [FAIL] {fn.__name__}: {exc}")
             failed += 1
 
     print(f"\n{'=' * 50}")
     print(f"Results: {passed} passed, {failed} failed out of {len(tests)}")
     if failed:
         sys.exit(1)
-    print("All tests passed! ✓")
+    print("All tests passed! [OK]")
 
 
 if __name__ == "__main__":

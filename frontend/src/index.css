@@ -41,7 +41,6 @@
     --scroll-thumb: rgba(0, 0, 0, 0.2);
   }
 
-  /* Font size scale */
   html[data-font-size="compact"] {
     font-size: 13.5px;
   }
@@ -54,7 +53,6 @@
     font-size: 16.5px;
   }
 
-  /* Global Scrollbars */
   * {
     box-sizing: border-box;
     scrollbar-width: thin;
@@ -87,11 +85,7 @@
   }
 }
 
-/* ==========================================================================
-   NUCLEAR Light Mode — covers every hardcoded dark hex used in the app
-   ========================================================================== */
 
-/* ── Base surfaces ── */
 html.light body,
 html[data-theme="light"] body {
   background-color: var(--bg-main) !important;
@@ -112,7 +106,6 @@ html[data-theme="light"] header {
   backdrop-filter: blur(20px);
 }
 
-/* ── ALL dark hardcoded backgrounds → white/light surfaces ── */
 html[data-theme="light"] [class*="bg-[#0"],
 html[data-theme="light"] [class*="bg-[#1"],
 html.light [class*="bg-[#0"],
@@ -120,7 +113,6 @@ html.light [class*="bg-[#1"] {
   background-color: #ffffff !important;
 }
 
-/* Darker sub-card shades → light gray */
 html[data-theme="light"] .bg-\[\#141b27\],
 html[data-theme="light"] .bg-\[\#141b27\]\/90,
 html[data-theme="light"] .bg-\[\#151b27\],
@@ -153,13 +145,11 @@ html.light .bg-\[\#1c222e\] {
   background-color: #f1f5f9 !important;
 }
 
-/* bg-black/40, bg-black/30 etc. → white panel */
 html[data-theme="light"] [class*="bg-black\/"],
 html.light [class*="bg-black\/"] {
   background-color: #f8fafc !important;
 }
 
-/* from-[#...]/via-[#...]/to-[#...] gradient classes → light */
 html[data-theme="light"] [class*="from-\[#"],
 html[data-theme="light"] [class*="via-\[#"],
 html[data-theme="light"] [class*="to-\[#"],
@@ -171,20 +161,17 @@ html.light [class*="to-\[#"] {
   --tw-gradient-to: #ffffff;
 }
 
-/* ── ALL dark borders → light ── */
 html[data-theme="light"] [class*="border-\[#"],
 html.light [class*="border-\[#"] {
   border-color: #e2e8f0 !important;
 }
 
-/* Divide lines */
 html[data-theme="light"] [class*="divide-\[#"],
 html.light [class*="divide-\[#"] {
   --tw-divide-opacity: 1;
   border-color: #e2e8f0 !important;
 }
 
-/* ── Text colors ── */
 html[data-theme="light"] .text-white,
 html[data-theme="light"] .text-\[\#e5e9f2\],
 html[data-theme="light"] .text-\[\#f0f6fc\],
@@ -213,7 +200,6 @@ html.light .text-\[\#556075\] {
   color: #94a3b8 !important;
 }
 
-/* ── Headings ── */
 html[data-theme="light"] h1,
 html[data-theme="light"] h2,
 html[data-theme="light"] h3,
@@ -225,13 +211,11 @@ html.light h4 {
   color: #0f172a !important;
 }
 
-/* ── Agent card thought-stream text (italic dark) ── */
 html[data-theme="light"] p,
 html.light p {
   color: #334155;
 }
 
-/* ── Textarea / input ── */
 html[data-theme="light"] textarea,
 html[data-theme="light"] input[type="text"],
 html.light textarea,
@@ -241,14 +225,12 @@ html.light input[type="text"] {
   border-color: #e2e8f0 !important;
 }
 
-/* ── Sidebar session active highlight ── */
 html[data-theme="light"] .border-l-2.border-emerald-400,
 html.light .border-l-2.border-emerald-400 {
   background-color: #ecfdf5 !important;
   color: #065f46 !important;
 }
 
-/* ── Synthesis table ── */
 html[data-theme="light"] .table-wrap,
 html.light .table-wrap {
   background: #ffffff !important;
@@ -273,7 +255,6 @@ html.light .synthesis-content td {
   border-bottom: 1px solid #e2e8f0 !important;
 }
 
-/* ── Math blocks ── */
 html[data-theme="light"] .math-block,
 html.light .math-block {
   background: #f8fafc !important;
@@ -282,21 +263,17 @@ html.light .math-block {
   color: #0f172a !important;
 }
 
-/* ── SVG lines in agent workspace don't need overrides (they use gradient colors) ── */
 
-/* ── Backdrop blur panels (agent gating hub) ── */
 html[data-theme="light"] .backdrop-blur-md,
 html.light .backdrop-blur-md {
   background-color: rgba(255, 255, 255, 0.92) !important;
 }
 
-/* ── Shadow-glass utility in light mode ── */
 html[data-theme="light"] .shadow-glass,
 html.light .shadow-glass {
   box-shadow: 0 2px 16px rgba(0, 0, 0, 0.06) !important;
 }
 
-/* ── Scrollbar in light mode ── */
 html[data-theme="light"] ::-webkit-scrollbar-track,
 html.light ::-webkit-scrollbar-track {
   background: #f1f5f9 !important;
@@ -312,19 +289,17 @@ html.light ::-webkit-scrollbar-thumb {
 
 
 
-/* ==========================================================================
-   Live Accent Color System
-   ========================================================================== */
 :root,
 html[data-accent="emerald"] {
   --accent: #10b981;
+  --accent-rgb: 16 185 129;
   --accent-soft: rgba(16, 185, 129, 0.15);
   --accent-border: rgba(16, 185, 129, 0.35);
 }
 
-/* Cyan */
 html[data-accent="cyan"] {
   --accent: #06b6d4;
+  --accent-rgb: 6 182 212;
   --accent-soft: rgba(6, 182, 212, 0.15);
   --accent-border: rgba(6, 182, 212, 0.35);
 }
@@ -346,9 +321,9 @@ html[data-accent="cyan"] .bg-emerald-500\/20 {
   background-color: rgba(6, 182, 212, 0.15) !important;
 }
 
-/* Violet */
 html[data-accent="violet"] {
   --accent: #8b5cf6;
+  --accent-rgb: 139 92 246;
   --accent-soft: rgba(139, 92, 246, 0.15);
   --accent-border: rgba(139, 92, 246, 0.35);
 }
@@ -370,9 +345,9 @@ html[data-accent="violet"] .bg-emerald-500\/20 {
   background-color: rgba(139, 92, 246, 0.15) !important;
 }
 
-/* Amber */
 html[data-accent="amber"] {
   --accent: #f59e0b;
+  --accent-rgb: 245 158 11;
   --accent-soft: rgba(245, 158, 11, 0.15);
   --accent-border: rgba(245, 158, 11, 0.35);
 }
@@ -394,9 +369,9 @@ html[data-accent="amber"] .bg-emerald-500\/20 {
   background-color: rgba(245, 158, 11, 0.15) !important;
 }
 
-/* Rose */
 html[data-accent="rose"] {
   --accent: #f43f5e;
+  --accent-rgb: 244 63 94;
   --accent-soft: rgba(244, 63, 94, 0.15);
   --accent-border: rgba(244, 63, 94, 0.35);
 }
@@ -418,9 +393,75 @@ html[data-accent="rose"] .bg-emerald-500\/20 {
   background-color: rgba(244, 63, 94, 0.15) !important;
 }
 
-/* ==========================================================================
-   Synthesis Typography Styles (Strict responsive word-breaking)
-   ========================================================================== */
+html[data-accent] .accent-fill {
+  background-color: var(--accent) !important;
+}
+
+html[data-accent] .from-emerald-500,
+html[data-accent] .from-emerald-600 {
+  --tw-gradient-from: var(--accent) var(--tw-gradient-from-position);
+  --tw-gradient-to: rgb(var(--accent-rgb) / 0) var(--tw-gradient-to-position);
+}
+
+html[data-accent] .from-emerald-500\/10 { --tw-gradient-from: rgb(var(--accent-rgb) / 0.1) var(--tw-gradient-from-position); }
+html[data-accent] .from-emerald-500\/15 { --tw-gradient-from: rgb(var(--accent-rgb) / 0.15) var(--tw-gradient-from-position); }
+html[data-accent] .from-emerald-500\/20,
+html[data-accent] .from-emerald-400\/20 { --tw-gradient-from: rgb(var(--accent-rgb) / 0.2) var(--tw-gradient-from-position); }
+html[data-accent] .from-emerald-500\/30 { --tw-gradient-from: rgb(var(--accent-rgb) / 0.3) var(--tw-gradient-from-position); }
+
+html[data-accent] .to-emerald-400,
+html[data-accent] .to-teal-500 {
+  --tw-gradient-to: var(--accent) var(--tw-gradient-to-position);
+}
+
+html[data-accent] .via-teal-500\/15 {
+  --tw-gradient-to: rgb(var(--accent-rgb) / 0) var(--tw-gradient-to-position);
+  --tw-gradient-stops: var(--tw-gradient-from), rgb(var(--accent-rgb) / 0.15) var(--tw-gradient-via-position), var(--tw-gradient-to);
+}
+
+html[data-accent] .chart-bar.from-emerald-600 {
+  --tw-gradient-from: #059669 var(--tw-gradient-from-position);
+  --tw-gradient-to: rgb(5 150 105 / 0) var(--tw-gradient-to-position);
+}
+
+html[data-accent] .chart-bar.to-emerald-400 {
+  --tw-gradient-to: #34d399 var(--tw-gradient-to-position);
+}
+
+html[data-accent] .chart-value-fixed {
+  color: #6ee7b7 !important;
+}
+
+html[data-accent] .chart-bar .text-emerald-300 {
+  color: #6ee7b7 !important;
+}
+
+html[data-accent] .chart-axis-fixed {
+  color: #34d399 !important;
+}
+
+html[data-accent] .chart-legend-swatch-fixed {
+  background-color: #10b981 !important;
+}
+
+html[data-accent] .chart-legend-label-fixed,
+html[data-accent] .chart-tooltip-value {
+  color: #34d399 !important;
+}
+
+html[data-accent] [class~="hover:border-emerald-500/40"]:hover,
+html[data-accent] [class~="hover:border-emerald-500/50"]:hover {
+  border-color: var(--accent-border) !important;
+}
+
+html[data-accent] [class~="hover:text-emerald-300"]:hover {
+  color: var(--accent) !important;
+}
+
+html[data-accent] [class~="ring-emerald-500/30"] {
+  --tw-ring-color: var(--accent-border) !important;
+}
+
 .synthesis-content {
   overflow-wrap: break-word;
   word-break: break-word;
@@ -497,7 +538,6 @@ html[data-accent="rose"] .bg-emerald-500\/20 {
   line-height: 1.75;
 }
 
-/* Synthesis Tables - Contained horizontally inside wrapper */
 .table-wrap {
   width: 100%;
   max-width: 100%;
@@ -551,7 +591,6 @@ html[data-accent="rose"] .bg-emerald-500\/20 {
   background: rgba(255, 255, 255, 0.03);
 }
 
-/* Mathematical KaTeX Blocks */
 .math-block {
   margin: 1.2rem 0;
   padding: 1rem 1.25rem;
@@ -591,7 +630,6 @@ html[data-accent="rose"] .bg-emerald-500\/20 {
   padding-top: 1px;
 }
 
-/* ── Chat Stream Bottom Fading Transition ── */
 .chat-scroll-stream {
   mask-image: linear-gradient(to bottom, black 0%, black calc(100% - 60px), transparent 100%);
   -webkit-mask-image: linear-gradient(to bottom, black 0%, black calc(100% - 60px), transparent 100%);
@@ -620,7 +658,7 @@ html[data-accent="rose"] .bg-emerald-500\/20 {
 }
 
 .query-bubble {
-  background: linear-gradient(110deg, rgba(16, 185, 129, 0.15), #1d2738 60%, #1a2231);
+  background: linear-gradient(110deg, var(--accent-soft), #1d2738 60%, #1a2231);
   color: #e2e8f0;
 }
 
@@ -628,20 +666,12 @@ html[data-theme="light"] .query-bubble,
 html.light .query-bubble {
   background: linear-gradient(110deg, #ecfdf5, #f1f5f9 72%, #ffffff);
   color: #1e293b;
-  border-color: rgba(16, 185, 129, 0.3);
+  border-color: var(--accent-border);
 }
 
 @keyframes view-enter {
-  from {
-    opacity: 0;
-    transform: translate3d(0, 10px, 0);
-    filter: blur(2px);
-  }
-  to {
-    opacity: 1;
-    transform: translate3d(0, 0, 0);
-    filter: blur(0);
-  }
+  from { transform: translate3d(0, 4px, 0); }
+  to { transform: translate3d(0, 0, 0); }
 }
 
 @keyframes card-enter {
@@ -667,7 +697,13 @@ html.light .query-bubble {
 }
 
 .view-enter {
-  animation: view-enter 380ms cubic-bezier(0.2, 0.75, 0.25, 1) both;
+  animation: view-enter 180ms cubic-bezier(0.2, 0.75, 0.25, 1) both;
+}
+
+.view-enter .animate-fade-in,
+.view-enter .stagger-enter > *,
+.view-enter .chart-bar {
+  animation: none !important;
 }
 
 .stagger-enter > * {

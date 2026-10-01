@@ -26,7 +26,6 @@ export const SettingsView: React.FC = () => {
 
   return (
     <div className="view-enter flex-1 overflow-y-auto px-8 pt-[104px] pb-8 space-y-8 max-w-4xl mx-auto w-full">
-      {/* Settings Header */}
       <div className="flex items-center justify-between border-b border-[#252e3e] pb-5 flex-wrap gap-4">
         <div>
           <h2 className="font-serif text-2xl font-bold text-white tracking-tight">System Preferences</h2>
@@ -55,7 +54,6 @@ export const SettingsView: React.FC = () => {
       </div>
 
       <div className="space-y-6">
-        {/* Appearance Card */}
         <div className="p-6 rounded-3xl bg-[#121723] border border-[#252f41] shadow-glass space-y-5">
           <div className="flex items-center gap-2.5 border-b border-[#222b3b] pb-3.5">
             <Palette className="w-4 h-4 text-emerald-400" />
@@ -63,7 +61,6 @@ export const SettingsView: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {/* Theme Selector */}
             <div>
               <label className="block text-xs font-semibold text-muted uppercase tracking-wider mb-2">
                 Color Palette
@@ -89,7 +86,6 @@ export const SettingsView: React.FC = () => {
               </div>
             </div>
 
-            {/* Font Size Scale */}
             <div>
               <label className="block text-xs font-semibold text-muted uppercase tracking-wider mb-2">
                 Reading Scale
@@ -117,7 +113,6 @@ export const SettingsView: React.FC = () => {
           </div>
         </div>
 
-        {/* Multi-Agent Gating & Accuracy Defaults */}
         <div className="p-6 rounded-3xl bg-[#121723] border border-[#252f41] shadow-glass space-y-5">
           <div className="flex items-center gap-2.5 border-b border-[#222b3b] pb-3.5">
             <Sliders className="w-4 h-4 text-sky-400" />
@@ -150,7 +145,6 @@ export const SettingsView: React.FC = () => {
               </div>
             </div>
 
-            {/* Formula Preview Box */}
             <div className="p-3.5 rounded-xl bg-[#0f141f] border border-[#232d3e] text-xs space-y-1">
               <span className="text-[10px] uppercase font-bold text-sky-400 tracking-wider">Mathematical Condition:</span>
               <p className="font-mono text-[#c9d3e0] text-[11px] break-words">
@@ -163,7 +157,6 @@ export const SettingsView: React.FC = () => {
           </div>
         </div>
 
-        {/* Model Provider & Evidence Grounding */}
         <div className="p-6 rounded-3xl bg-[#121723] border border-[#252f41] shadow-glass space-y-5">
           <div className="flex items-center gap-2.5 border-b border-[#222b3b] pb-3.5">
             <Cpu className="w-4 h-4 text-purple-400" />
